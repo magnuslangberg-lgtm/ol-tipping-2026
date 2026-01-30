@@ -358,7 +358,7 @@ const UTØVERE = {
     // Norge - kvinner
     "Therese Johaug", "Heidi Weng", "Ingvild Flugstad Østberg", "Tiril Udnes Weng",
     "Anne Kjersti Kalvå", "Astrid Øyre Slind", "Helene Marie Fossesholm", "Mathilde Myhrvold",
-    "Kristine Stavås Skistad", "Lotta Udnes Weng", "Silje Theodorsen",
+    "Kristine Stavås Skistad", "Lotta Udnes Weng", "Silje Theodorsen", "Karoline Simpson-Larsen",
     // Sverige
     "Frida Karlsson", "Ebba Andersson", "Jonna Sundling", "Maja Dahlqvist", "Linn Svahn",
     "Calle Halfvarsson", "William Poromaa", "Edvin Anger", "Moa Ilar", "Emma Ribom",
@@ -397,7 +397,7 @@ const UTØVERE = {
     // Andre
     "Jakov Fak", "Miha Dovžan", "Endre Ståhl",
     "Suvi Minkkinen", "Marketa Davidova", "Paulina Fialkova", "Daria Domracheva",
-    "Dmytro Pidruchnyi", "Artem Pryma",
+    "Dmytro Pidruchnyi", "Artem Pryma", "Johan-Olav Botn", "Campbell Wright",
   ],
   hopp: [
     // Norge
@@ -467,6 +467,7 @@ const UTØVERE = {
     // Norge
     "Hallgeir Engebråten", "Sverre Lunde Pedersen", "Peder Kongshaug", "Allan Dahl Johansson",
     "Ragne Wiklund", "Sofie Karoline Haugen", "Ida Njåtun", "Julie Nistad Samsonsen",
+    "Sander Eitrem",
     // Nederland
     "Patrick Roest", "Jorrit Bergsma", "Kjeld Nuis", "Thomas Krol", "Tim Prins",
     "Irene Schouten", "Antoinette de Jong", "Antoinette Rijpma-de Jong", "Jutta Leerdam", "Joy Beune",
@@ -479,15 +480,16 @@ const UTØVERE = {
     "Davide Ghiotto", "Andrea Giovannini", "Michele Malfatti",
     // Andre
     "Laurent Dubreuil", "Bart Swings", "Martina Sáblíková",
+    "Metoděj Jílek", "Timothy Loubineaud",
   ],
   freeski: [
     // Norge
-    "Birk Ruud", "Ferdinand Dahl", "Tormod Frostad",
+    "Birk Ruud", "Ferdinand Dahl", "Tormod Frostad", "Sebastian Schjerve",
     // USA
-    "Alex Hall", "Nick Goepper", "Mac Forehand", "Colby Stevenson",
+    "Alex Hall", "Nick Goepper", "Mac Forehand", "Colby Stevenson", "Konnor Ralph",
     // Andre
     "Nico Porteous", "Aaron Blunck", "David Wise",
-    "Andri Ragettli", "Fabian Bösch", "Henry Sildaru", "Matěj Švancer",
+    "Andri Ragettli", "Fabian Bösch", "Henry Sildaru", "Matěj Švancer", "Martin Nordqvist",
     "Eileen Gu", "Kelly Sildaru", "Mathilde Gremaud",
   ],
   snowboard: [
@@ -746,6 +748,7 @@ export default function OLTippingApp() {
   const [editingDeltaker, setEditingDeltaker] = useState(null); // Deltaker som redigeres
   const [uploadStatus, setUploadStatus] = useState(null); // { type: 'loading' | 'success' | 'error', message: string }
   const [saveStatus, setSaveStatus] = useState(null); // { type: 'success' | 'error', message: string }
+  const [norskeGullResultat, setNorskeGullResultat] = useState(''); // Faktisk antall norske gull
 
   useEffect(() => {
     const init = {};
@@ -768,6 +771,9 @@ export default function OLTippingApp() {
     const unsubscribeResultater = onSnapshot(doc(db, 'config', 'resultater'), (docSnap) => {
       if (docSnap.exists()) {
         setResultater(docSnap.data().data || {});
+        if (docSnap.data().norskeGull !== undefined) {
+          setNorskeGullResultat(docSnap.data().norskeGull.toString());
+        }
       }
     }, (error) => {
       console.error('Feil ved lasting av resultater:', error);
@@ -783,7 +789,10 @@ export default function OLTippingApp() {
   // Lagre resultater til Firebase (kalles manuelt fra admin)
   const saveResultaterToFirebase = async () => {
     try {
-      await setDoc(doc(db, 'config', 'resultater'), { data: resultater });
+      await setDoc(doc(db, 'config', 'resultater'), { 
+        data: resultater,
+        norskeGull: norskeGullResultat ? parseInt(norskeGullResultat) : null
+      });
       setSaveStatus({ type: 'success', message: 'Resultater lagret!' });
       setTimeout(() => setSaveStatus(null), 3000);
     } catch (e) {
@@ -946,7 +955,26 @@ export default function OLTippingApp() {
     return perDag;
   };
 
-  const leaderboard = [...alleTips].map(d => ({ ...d, poeng: beregnPoeng(d) })).sort((a, b) => b.poeng - a.poeng);
+  // Beregn bonus for gull-tips (kun når resultat er registrert)
+  const beregnGullBonus = (deltaker) => {
+    if (!norskeGullResultat || norskeGullResultat === '') return 0;
+    const faktisk = parseInt(norskeGullResultat);
+    const gjetning = deltaker.gullTips || 0;
+    const diff = Math.abs(faktisk - gjetning);
+    
+    // Eksakt: 20 poeng, 1 av: 10 poeng, 2 av: 5 poeng
+    if (diff === 0) return 20;
+    if (diff === 1) return 10;
+    if (diff === 2) return 5;
+    return 0;
+  };
+
+  const leaderboard = [...alleTips].map(d => ({ 
+    ...d, 
+    øvelsePoeng: beregnPoeng(d),
+    gullBonus: beregnGullBonus(d),
+    poeng: beregnPoeng(d) + beregnGullBonus(d)
+  })).sort((a, b) => b.poeng - a.poeng);
   
   // Leaderboard for en spesifikk dag
   const getLeaderboardForDay = (dag) => {
@@ -1073,7 +1101,14 @@ export default function OLTippingApp() {
               </div>
               <div className="bg-red-900/30 rounded-lg p-3 mt-3">
                 <p className="font-bold text-red-300 mb-1">🇳🇴 NORSKE GULL TOTALT</p>
-                <p className="text-red-100 text-xs">Tipp hvor mange gull Norge tar. Nærmest: 30p | 2.: 20p | 3.: 15p | 4.: 10p | 5.: 5p</p>
+                <p className="text-red-100 text-xs">Tipp hvor mange gull Norge tar. Eksakt: 20p | 1 av: 10p | 2 av: 5p</p>
+                {norskeGullResultat && norskeGullResultat !== '' && (
+                  <div className="mt-2 pt-2 border-t border-red-700/50">
+                    <p className="text-yellow-400 font-bold text-lg">
+                      🏆 Faktisk resultat: {norskeGullResultat} gull 🥇
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1358,9 +1393,19 @@ export default function OLTippingApp() {
                         }`}>{idx + 1}</div>
                         <div className="flex-1 text-left">
                           <h3 className="font-bold text-white">{d.navn}</h3>
-                          <p className="text-xs text-slate-400">Gull-tips: {d.gullTips} 🇳🇴</p>
+                          <p className="text-xs text-slate-400">
+                            Gull-tips: {d.gullTips} 🇳🇴
+                            {leaderboardView === 'total' && d.gullBonus > 0 && (
+                              <span className="text-yellow-400 ml-2">(+{d.gullBonus}p bonus!)</span>
+                            )}
+                          </p>
                         </div>
-                        <div className="text-2xl font-black text-cyan-400">{d.poeng}p</div>
+                        <div className="text-right">
+                          <div className="text-2xl font-black text-cyan-400">{d.poeng}p</div>
+                          {leaderboardView === 'total' && d.gullBonus > 0 && (
+                            <div className="text-xs text-slate-400">{d.øvelsePoeng} + {d.gullBonus}🥇</div>
+                          )}
+                        </div>
                         <ChevronDown className={`w-5 h-5 text-slate-400 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                       </button>
                       
@@ -1787,6 +1832,32 @@ export default function OLTippingApp() {
                 {/* Resultat-registrering */}
                 <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
                   <h3 className="font-bold text-yellow-400 mb-3">🏅 Registrer resultater</h3>
+                  
+                  {/* Norske gull totalt */}
+                  <div className="bg-gradient-to-r from-yellow-900/50 to-amber-900/50 border border-yellow-600/50 rounded-lg p-4 mb-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h4 className="font-bold text-yellow-400 flex items-center gap-2">
+                          🇳🇴 Norske gull totalt
+                        </h4>
+                        <p className="text-xs text-yellow-200/70 mt-1">
+                          Faktisk antall norske gullmedaljer (oppdater etter hvert)
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="0"
+                          max="50"
+                          value={norskeGullResultat}
+                          onChange={(e) => setNorskeGullResultat(e.target.value)}
+                          placeholder="?"
+                          className="w-20 px-3 py-2 bg-slate-800 border border-yellow-600 rounded-lg text-center text-2xl font-bold text-yellow-400"
+                        />
+                        <span className="text-yellow-400 text-2xl">🥇</span>
+                      </div>
+                    </div>
+                  </div>
                   
                   {/* Dag-velger */}
                   <div className="flex gap-1 overflow-x-auto pb-3 mb-3 border-b border-slate-600">
