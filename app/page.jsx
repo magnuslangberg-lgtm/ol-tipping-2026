@@ -2,6 +2,23 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Trophy, Users, Calendar, ChevronDown, ChevronUp, Send, Eye, EyeOff, Mountain, Flag, CheckCircle, AlertCircle, Lock, LogOut, User, FileText, AlertTriangle, List, X, Download, Upload, Trash2 } from 'lucide-react';
+import { initializeApp } from 'firebase/app';
+import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
+
+// Firebase konfigurasjon
+const firebaseConfig = {
+  apiKey: "AIzaSyDicPL3QYx7I9vQgTpOe0e9gqCxlv-aVbc",
+  authDomain: "ol-tipping-2026.firebaseapp.com",
+  projectId: "ol-tipping-2026",
+  storageBucket: "ol-tipping-2026.firebasestorage.app",
+  messagingSenderId: "647811500744",
+  appId: "1:647811500744:web:9f160b6fa2ce0cde8df3fd",
+  measurementId: "G-4H4236TCPW"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 // Dynamisk lasting av SheetJS
 let XLSX = null;
@@ -537,17 +554,58 @@ function levenshteinDistance(str1, str2) {
   return matrix[s2.length][s1.length];
 }
 
+// Normaliser navn for bedre matching (ø→o, æ→ae, é→e, osv)
+function normalizeForMatch(str) {
+  return str.toLowerCase().trim()
+    .replace(/ø/g, 'o').replace(/æ/g, 'ae').replace(/å/g, 'a')
+    .replace(/ö/g, 'o').replace(/ä/g, 'a').replace(/ü/g, 'u')
+    .replace(/é|è|ê|ë/g, 'e').replace(/á|à|â/g, 'a').replace(/í|ì|î/g, 'i')
+    .replace(/ó|ò|ô/g, 'o').replace(/ú|ù|û/g, 'u').replace(/ß/g, 'ss')
+    .replace(/[-_]/g, ' ').replace(/\s+/g, ' ');
+}
+
 function fuzzyMatch(name1, name2) {
   const s1 = name1.toLowerCase().trim();
   const s2 = name2.toLowerCase().trim();
+  
+  // Eksakt match
   if (s1 === s2) return { match: true, score: 1 };
+  
+  // Match med normaliserte tegn (Klæbo = Klaebo = Klabo)
+  const n1 = normalizeForMatch(name1);
+  const n2 = normalizeForMatch(name2);
+  if (n1 === n2) return { match: true, score: 0.98 };
+  
+  // En inneholder den andre
   if (s1.includes(s2) || s2.includes(s1)) return { match: true, score: 0.9 };
-  const lastName1 = s1.split(' ').pop();
-  const lastName2 = s2.split(' ').pop();
+  if (n1.includes(n2) || n2.includes(n1)) return { match: true, score: 0.88 };
+  
+  // Etternavn-match (Klæbo matcher Johannes Høsflot Klæbo)
+  const parts1 = s1.split(' ');
+  const parts2 = s2.split(' ');
+  const lastName1 = parts1[parts1.length - 1];
+  const lastName2 = parts2[parts2.length - 1];
+  
+  // Hvis ett av navnene er bare etternavn, og det matcher
+  if (parts1.length === 1 && lastName1.length > 2) {
+    if (lastName1 === lastName2) return { match: true, score: 0.92 };
+    if (normalizeForMatch(lastName1) === normalizeForMatch(lastName2)) return { match: true, score: 0.90 };
+  }
+  if (parts2.length === 1 && lastName2.length > 2) {
+    if (lastName1 === lastName2) return { match: true, score: 0.92 };
+    if (normalizeForMatch(lastName1) === normalizeForMatch(lastName2)) return { match: true, score: 0.90 };
+  }
+  
+  // Generell etternavn-match
   if (lastName1 === lastName2 && lastName1.length > 3) return { match: true, score: 0.85 };
-  const distance = levenshteinDistance(s1, s2);
-  const similarity = 1 - (distance / Math.max(s1.length, s2.length));
-  return { match: similarity >= 0.7, score: similarity };
+  if (normalizeForMatch(lastName1) === normalizeForMatch(lastName2) && lastName1.length > 3) return { match: true, score: 0.83 };
+  
+  // Levenshtein distance for skrivefeil
+  const distance = levenshteinDistance(n1, n2);
+  const similarity = 1 - (distance / Math.max(n1.length, n2.length));
+  
+  // Litt lavere terskel (65%) for å fange flere skrivefeil
+  return { match: similarity >= 0.65, score: similarity };
 }
 
 function findBestMatch(searchName, resultsList) {
@@ -694,26 +752,68 @@ export default function OLTippingApp() {
     OL_PROGRAM.forEach((ø, idx) => { init[idx] = ø.type === 'individuell' ? ['','','','',''] : ['','','']; });
     setTips(init);
     setExpandedDays({ 1: true });
-    // Last fra localStorage
-    try {
-      const t = localStorage.getItem('ol-tips-2026');
-      if (t) setAlleTips(JSON.parse(t));
-      const r = localStorage.getItem('ol-resultater-2026');
-      if (r) setResultater(JSON.parse(r));
-    } catch (e) {
-      console.error('Kunne ikke laste data:', e);
-    }
+    
+    // Lytt til deltakere fra Firebase (realtime)
+    const unsubscribeTips = onSnapshot(collection(db, 'deltakere'), (snapshot) => {
+      const deltakere = [];
+      snapshot.forEach((doc) => {
+        deltakere.push({ id: doc.id, ...doc.data() });
+      });
+      setAlleTips(deltakere);
+    }, (error) => {
+      console.error('Feil ved lasting av deltakere:', error);
+    });
+    
+    // Lytt til resultater fra Firebase (realtime)
+    const unsubscribeResultater = onSnapshot(doc(db, 'config', 'resultater'), (docSnap) => {
+      if (docSnap.exists()) {
+        setResultater(docSnap.data().data || {});
+      }
+    }, (error) => {
+      console.error('Feil ved lasting av resultater:', error);
+    });
+    
+    // Cleanup listeners når komponenten unmountes
+    return () => {
+      unsubscribeTips();
+      unsubscribeResultater();
+    };
   }, []);
 
-  useEffect(() => {
-    // Lagre til localStorage
+  // Lagre resultater til Firebase (kalles manuelt fra admin)
+  const saveResultaterToFirebase = async () => {
     try {
-      if (alleTips.length > 0) localStorage.setItem('ol-tips-2026', JSON.stringify(alleTips));
-      if (Object.keys(resultater).length > 0) localStorage.setItem('ol-resultater-2026', JSON.stringify(resultater));
+      await setDoc(doc(db, 'config', 'resultater'), { data: resultater });
+      setSaveStatus({ type: 'success', message: 'Resultater lagret!' });
+      setTimeout(() => setSaveStatus(null), 3000);
     } catch (e) {
-      console.error('Kunne ikke lagre data:', e);
+      console.error('Feil ved lagring:', e);
+      setSaveStatus({ type: 'error', message: 'Kunne ikke lagre: ' + e.message });
     }
-  }, [alleTips, resultater]);
+  };
+
+  // Legg til deltaker i Firebase
+  const addDeltakerToFirebase = async (deltaker) => {
+    try {
+      const id = deltaker.id || Date.now().toString();
+      await setDoc(doc(db, 'deltakere', id), { ...deltaker, id });
+      return true;
+    } catch (e) {
+      console.error('Feil ved lagring av deltaker:', e);
+      return false;
+    }
+  };
+
+  // Slett deltaker fra Firebase
+  const deleteDeltakerFromFirebase = async (id) => {
+    try {
+      await deleteDoc(doc(db, 'deltakere', id.toString()));
+      return true;
+    } catch (e) {
+      console.error('Feil ved sletting:', e);
+      return false;
+    }
+  };
 
   const øvelserPerDag = OL_PROGRAM.reduce((acc, ø, idx) => {
     if (!acc[ø.dag]) acc[ø.dag] = [];
@@ -738,20 +838,25 @@ export default function OLTippingApp() {
     return UTØVERE[sport] || [];
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!deltakerNavn.trim()) return alert('Fyll inn navnet ditt!');
     if (!gullTips || isNaN(gullTips)) return alert('Tipp antall norske gull!');
     if (alleTips.some(t => t.navn.toLowerCase() === deltakerNavn.toLowerCase())) {
       return alert('Dette navnet er allerede registrert!');
     }
-    setAlleTips(p => [...p, {
-      id: Date.now(),
+    const nyDeltaker = {
+      id: Date.now().toString(),
       navn: deltakerNavn,
       tips: { ...tips },
       gullTips: parseInt(gullTips),
       innsendt: new Date().toLocaleString('no-NO'),
-    }]);
-    setSubmitted(true);
+    };
+    const success = await addDeltakerToFirebase(nyDeltaker);
+    if (success) {
+      setSubmitted(true);
+    } else {
+      alert('Kunne ikke lagre tips. Prøv igjen.');
+    }
   };
 
   // Finn ukjente navn for en deltaker
@@ -783,7 +888,7 @@ export default function OLTippingApp() {
           if (faktiskPos < 5) total += [5,4,3,2,1][faktiskPos];
           if (faktiskPos < 3 && tippPos === faktiskPos) total += [5,3,1][faktiskPos];
         } else {
-          if (faktiskPos < 3 && tippPos === faktiskPos) total += [9,6,4][faktiskPos];
+          if (faktiskPos < 3 && tippPos === faktiskPos) total += [8,5,3][faktiskPos];
         }
       });
     });
@@ -813,7 +918,7 @@ export default function OLTippingApp() {
           if (faktiskPos < 5) øvelsePoeng = [5,4,3,2,1][faktiskPos];
           if (faktiskPos < 3 && tippPos === faktiskPos) bonus = [5,3,1][faktiskPos];
         } else {
-          if (faktiskPos < 3 && tippPos === faktiskPos) øvelsePoeng = [9,6,4][faktiskPos];
+          if (faktiskPos < 3 && tippPos === faktiskPos) øvelsePoeng = [8,5,3][faktiskPos];
         }
       }
       
@@ -960,9 +1065,9 @@ export default function OLTippingApp() {
                   <p className="font-bold text-green-300 mb-2">🏁 LAGØVELSER</p>
                   <p className="text-green-100 text-xs mb-2">Du tipper 3 nasjoner (gull, sølv, bronsje)</p>
                   <p className="text-slate-300 text-xs mb-1"><span className="text-white font-semibold">Kun poeng for riktig plassering:</span></p>
-                  <p className="text-yellow-100 text-xs">Riktig gullnasjon: 9 poeng</p>
-                  <p className="text-slate-300 text-xs">Riktig sølvnasjon: 6 poeng</p>
-                  <p className="text-orange-200 text-xs">Riktig bronsenasjon: 4 poeng</p>
+                  <p className="text-yellow-100 text-xs">Riktig gullnasjon: 8 poeng</p>
+                  <p className="text-slate-300 text-xs">Riktig sølvnasjon: 5 poeng</p>
+                  <p className="text-orange-200 text-xs">Riktig bronsenasjon: 3 poeng</p>
                   <p className="text-slate-400 text-xs mt-2 italic">Her må nasjonen stå på riktig plass!</p>
                 </div>
               </div>
@@ -1426,18 +1531,23 @@ export default function OLTippingApp() {
                               fullTips[idx] = result.tips[idx] || (ø.type === 'individuell' ? ['','','','',''] : ['','','']);
                             });
                             
-                            setAlleTips(p => [...p, {
-                              id: Date.now(),
+                            const nyDeltaker = {
+                              id: Date.now().toString(),
                               navn: result.navn,
                               tips: fullTips,
                               gullTips: result.gullTips || 0,
                               innsendt: new Date().toLocaleString('no-NO') + ' (Excel)',
-                            }]);
+                            };
                             
-                            setUploadStatus({ 
-                              type: 'success', 
-                              message: `${result.navn} lagt til! Gull-tips: ${result.gullTips}, Utfylte tips: ${utfylteTips}` 
-                            });
+                            const success = await addDeltakerToFirebase(nyDeltaker);
+                            if (success) {
+                              setUploadStatus({ 
+                                type: 'success', 
+                                message: `${result.navn} lagt til! Gull-tips: ${result.gullTips}, Utfylte tips: ${utfylteTips}` 
+                              });
+                            } else {
+                              setUploadStatus({ type: 'error', message: 'Kunne ikke lagre til database' });
+                            }
                             
                             // Fjern suksess-melding etter 5 sekunder
                             setTimeout(() => setUploadStatus(null), 5000);
@@ -1522,9 +1632,11 @@ export default function OLTippingApp() {
                                 <span className="text-red-300 text-xs">Slette {d.navn}?</span>
                                 <div className="flex gap-1">
                                   <button
-                                    onClick={() => {
-                                      setAlleTips(p => p.filter(t => t.id !== d.id));
-                                      if (selectedDeltaker?.id === d.id) setSelectedDeltaker(null);
+                                    onClick={async () => {
+                                      const success = await deleteDeltakerFromFirebase(d.id);
+                                      if (success) {
+                                        if (selectedDeltaker?.id === d.id) setSelectedDeltaker(null);
+                                      }
                                       setDeleteConfirmId(null);
                                     }}
                                     className="px-2 py-1 bg-red-600 text-white text-xs rounded font-semibold"
@@ -1742,18 +1854,10 @@ export default function OLTippingApp() {
                     )}
                     <div className="flex justify-between items-center">
                       <p className="text-xs text-slate-400">
-                        Resultater lagres også automatisk
+                        Klikk for å lagre til databasen
                       </p>
                       <button
-                        onClick={() => {
-                          try {
-                            localStorage.setItem('ol-resultater-2026', JSON.stringify(resultater));
-                            setSaveStatus({ type: 'success', message: 'Resultater lagret!' });
-                            setTimeout(() => setSaveStatus(null), 3000);
-                          } catch (e) {
-                            setSaveStatus({ type: 'error', message: 'Kunne ikke lagre: ' + e.message });
-                          }
-                        }}
+                        onClick={saveResultaterToFirebase}
                         className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold text-sm"
                       >
                         💾 Lagre resultater
