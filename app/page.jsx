@@ -1501,7 +1501,7 @@ export default function OLTippingApp() {
                         setUploadStatus({ type: 'loading', message: `Leser ${file.name}...` });
                         
                         try {
-                          await parseExcelFile(file, (result) => {
+                          await parseExcelFile(file, async (result) => {
                             console.log('Parse result:', result);
                             
                             if (!result.success) {
