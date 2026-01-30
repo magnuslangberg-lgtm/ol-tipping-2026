@@ -962,10 +962,10 @@ export default function OLTippingApp() {
     const gjetning = deltaker.gullTips || 0;
     const diff = Math.abs(faktisk - gjetning);
     
-    // Eksakt: 20 poeng, 1 av: 10 poeng, 2 av: 5 poeng
-    if (diff === 0) return 20;
-    if (diff === 1) return 10;
-    if (diff === 2) return 5;
+    // Eksakt: 30 poeng, 1 av: 20 poeng, 2 av: 10 poeng
+    if (diff === 0) return 30;
+    if (diff === 1) return 20;
+    if (diff === 2) return 10;
     return 0;
   };
 
@@ -1101,7 +1101,7 @@ export default function OLTippingApp() {
               </div>
               <div className="bg-red-900/30 rounded-lg p-3 mt-3">
                 <p className="font-bold text-red-300 mb-1">🇳🇴 NORSKE GULL TOTALT</p>
-                <p className="text-red-100 text-xs">Tipp hvor mange gull Norge tar. Eksakt: 20p | 1 av: 10p | 2 av: 5p</p>
+                <p className="text-red-100 text-xs">Tipp hvor mange gull Norge tar. Eksakt: 30p | 1 av: 20p | 2 av: 10p</p>
                 {norskeGullResultat && norskeGullResultat !== '' && (
                   <div className="mt-2 pt-2 border-t border-red-700/50">
                     <p className="text-yellow-400 font-bold text-lg">
@@ -1651,7 +1651,9 @@ export default function OLTippingApp() {
                     <div className="text-xs text-slate-400">Pott</div>
                   </div>
                   <div className="bg-slate-800/50 rounded-lg p-3 text-center">
-                    <div className="text-2xl font-black text-yellow-400">{Object.keys(resultater).length}</div>
+                    <div className="text-2xl font-black text-yellow-400">
+                      {Object.values(resultater).filter(r => r && r.some(v => v?.trim())).length}
+                    </div>
                     <div className="text-xs text-slate-400">Resultater</div>
                   </div>
                 </div>
