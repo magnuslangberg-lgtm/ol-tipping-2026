@@ -126,7 +126,7 @@ async function downloadExcelTemplate() {
   // Norske gull nederst
   data.push([]);
   data.push(['🇳🇴 NORSKE GULL TOTALT:', '', '', '⬅️ Fyll inn tall her (celle B67)']);
-  data.push(['Poeng: Nærmest 30p | 2. 20p | 3. 15p | 4. 10p | 5. 5p']);
+  data.push(['Poeng: Eksakt 30p | Bommer med 1: 20p | Bommer med 2: 10p']);
   
   const ws = xlsx.utils.aoa_to_sheet(data);
   
@@ -1336,7 +1336,7 @@ export default function OLTippingApp() {
                 {/* Norske gull - NEDERST */}
                 <div className="bg-gradient-to-r from-red-900/50 to-red-800/50 rounded-xl p-4 border border-red-600/30">
                   <label className="block text-sm font-bold text-red-300 mb-2">🇳🇴 Hvor mange gull tar Norge totalt?</label>
-                  <p className="text-xs text-red-200 mb-2">Nærmest: 30p | 2.: 20p | 3.: 15p | 4.: 10p | 5.: 5p</p>
+                  <p className="text-xs text-red-200 mb-2">Eksakt: 30p | Bommer med 1: 20p | Bommer med 2: 10p</p>
                   <input type="number" min="0" max="50" value={gullTips} onChange={(e) => setGullTips(e.target.value)}
                     placeholder="Antall gull..." className="w-24 px-3 py-2 bg-slate-900 border border-red-600/50 rounded-lg text-white text-center font-bold text-lg" />
                 </div>
