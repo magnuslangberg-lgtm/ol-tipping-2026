@@ -749,6 +749,11 @@ export default function OLTippingApp() {
   const [uploadStatus, setUploadStatus] = useState(null); // { type: 'loading' | 'success' | 'error', message: string }
   const [saveStatus, setSaveStatus] = useState(null); // { type: 'success' | 'error', message: string }
   const [norskeGullResultat, setNorskeGullResultat] = useState(''); // Faktisk antall norske gull
+  
+  // Synlighetskontroll for tips
+  const [synligeDager, setSynligeDager] = useState({}); // { 1: true, 2: false, ... }
+  const [gullTipsSynlig, setGullTipsSynlig] = useState(false);
+  const [tipsDag, setTipsDag] = useState(1); // Valgt dag på Tips-siden
 
   useEffect(() => {
     const init = {};
@@ -779,12 +784,35 @@ export default function OLTippingApp() {
       console.error('Feil ved lasting av resultater:', error);
     });
     
+    // Lytt til synlighetsinnstillinger fra Firebase
+    const unsubscribeSynlighet = onSnapshot(doc(db, 'config', 'synlighet'), (docSnap) => {
+      if (docSnap.exists()) {
+        setSynligeDager(docSnap.data().dager || {});
+        setGullTipsSynlig(docSnap.data().gullTips || false);
+      }
+    }, (error) => {
+      console.error('Feil ved lasting av synlighet:', error);
+    });
+    
     // Cleanup listeners når komponenten unmountes
     return () => {
       unsubscribeTips();
       unsubscribeResultater();
+      unsubscribeSynlighet();
     };
   }, []);
+
+  // Lagre synlighetsinnstillinger til Firebase
+  const saveSynlighetToFirebase = async (dager, gullTips) => {
+    try {
+      await setDoc(doc(db, 'config', 'synlighet'), { 
+        dager: dager,
+        gullTips: gullTips
+      });
+    } catch (e) {
+      console.error('Feil ved lagring av synlighet:', e);
+    }
+  };
 
   // Lagre resultater til Firebase (kalles manuelt fra admin)
   const saveResultaterToFirebase = async () => {
@@ -1018,6 +1046,7 @@ export default function OLTippingApp() {
           {[
             { id: 'info', label: 'Info', icon: AlertCircle },
             { id: 'tipping', label: 'Tipping', icon: Send },
+            { id: 'tips', label: 'Tips', icon: Users },
             { id: 'leaderboard', label: 'Resultater', icon: Trophy },
             { id: 'admin', label: 'Admin', icon: Lock },
           ].map(({ id, label, icon: Icon }) => (
@@ -1101,7 +1130,7 @@ export default function OLTippingApp() {
               </div>
               <div className="bg-red-900/30 rounded-lg p-3 mt-3">
                 <p className="font-bold text-red-300 mb-1">🇳🇴 NORSKE GULL TOTALT</p>
-                <p className="text-red-100 text-xs">Tipp hvor mange gull Norge tar. Eksakt: 30p | 1 av: 20p | 2 av: 10p</p>
+                <p className="text-red-100 text-xs">Tipp hvor mange gull Norge tar totalt. Treffer du eksakt: 30p | Bommer med 1: 20p | Bommer med 2: 10p</p>
                 {norskeGullResultat && norskeGullResultat !== '' && (
                   <div className="mt-2 pt-2 border-t border-red-700/50">
                     <p className="text-yellow-400 font-bold text-lg">
@@ -1324,6 +1353,236 @@ export default function OLTippingApp() {
           </div>
         )}
 
+        {/* TIPS - Se hva alle har tippet */}
+        {view === 'tips' && (
+          <div className="space-y-4">
+            <div className="text-center">
+              <h2 className="text-xl font-black text-cyan-400">📊 SE ALLES TIPS</h2>
+              <p className="text-sm text-slate-400 mt-1">Se hva deltakerne har tippet</p>
+            </div>
+
+            {/* Admin synlighetskontroll */}
+            {isAdminLoggedIn && (
+              <div className="bg-red-900/30 border border-red-500/50 rounded-xl p-4">
+                <h3 className="font-bold text-red-400 mb-3 flex items-center gap-2">
+                  <Lock className="w-4 h-4" /> Admin: Synlighetskontroll
+                </h3>
+                
+                {/* Gull-tips toggle */}
+                <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg mb-3">
+                  <div>
+                    <p className="text-white font-semibold">🇳🇴 Norske gull-tips</p>
+                    <p className="text-xs text-slate-400">Vis deltakernes gjetninger på antall gull</p>
+                  </div>
+                  <button
+                    onClick={() => {
+                      const nyVerdi = !gullTipsSynlig;
+                      setGullTipsSynlig(nyVerdi);
+                      saveSynlighetToFirebase(synligeDager, nyVerdi);
+                    }}
+                    className={`px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 ${
+                      gullTipsSynlig ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-300'
+                    }`}
+                  >
+                    {gullTipsSynlig ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                    {gullTipsSynlig ? 'Synlig' : 'Skjult'}
+                  </button>
+                </div>
+
+                {/* Dag-synlighet */}
+                <p className="text-sm text-slate-300 mb-2">Åpne tips for dag:</p>
+                <div className="flex gap-1 flex-wrap">
+                  {Array.from({ length: 16 }, (_, i) => i + 1).map(dag => (
+                    <button
+                      key={dag}
+                      onClick={() => {
+                        const nyeDager = { ...synligeDager, [dag]: !synligeDager[dag] };
+                        setSynligeDager(nyeDager);
+                        saveSynlighetToFirebase(nyeDager, gullTipsSynlig);
+                      }}
+                      className={`px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 ${
+                        synligeDager[dag] ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-400'
+                      }`}
+                    >
+                      D{dag}
+                      {synligeDager[dag] ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Gull-tips seksjon */}
+            <div className={`rounded-xl p-4 border ${
+              gullTipsSynlig 
+                ? 'bg-yellow-900/30 border-yellow-500/50' 
+                : 'bg-slate-800/30 border-slate-700'
+            }`}>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-yellow-400 flex items-center gap-2">
+                  🇳🇴 Norske gull-tips
+                </h3>
+                {!gullTipsSynlig && (
+                  <span className="text-xs text-slate-500 flex items-center gap-1">
+                    <EyeOff className="w-3 h-3" /> Skjult til konkurransen starter
+                  </span>
+                )}
+              </div>
+              
+              {gullTipsSynlig ? (
+                <div>
+                  {/* Statistikk */}
+                  {(() => {
+                    const gullTeller = {};
+                    alleTips.forEach(d => {
+                      const gull = d.gullTips || 0;
+                      gullTeller[gull] = (gullTeller[gull] || 0) + 1;
+                    });
+                    const gullStats = Object.entries(gullTeller)
+                      .map(([gull, antall]) => ({ gull: parseInt(gull), antall }))
+                      .sort((a, b) => b.antall - a.antall);
+                    
+                    return (
+                      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-4">
+                        {gullStats.map(({ gull, antall }) => (
+                          <div key={gull} className="bg-slate-800/50 rounded-lg p-2 text-center">
+                            <div className="text-xl font-black text-yellow-400">{gull}</div>
+                            <div className="text-xs text-slate-400">{antall} {antall === 1 ? 'pers' : 'pers'}</div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                  
+                  {/* Alle tips */}
+                  <div className="space-y-1 max-h-60 overflow-y-auto">
+                    {[...alleTips].sort((a, b) => (b.gullTips || 0) - (a.gullTips || 0)).map(d => (
+                      <div key={d.id} className="flex justify-between items-center p-2 bg-slate-800/30 rounded">
+                        <span className="text-white">{d.navn}</span>
+                        <span className="text-yellow-400 font-bold">{d.gullTips || 0} 🥇</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-6 text-slate-500">
+                  <EyeOff className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                  <p>Gull-tips er skjult</p>
+                  <p className="text-xs">Vises når konkurransen starter</p>
+                </div>
+              )}
+            </div>
+
+            {/* Dag-velger */}
+            <div className="flex gap-1 overflow-x-auto pb-2">
+              {Array.from({ length: 16 }, (_, i) => i + 1).map(dag => (
+                <button
+                  key={dag}
+                  onClick={() => setTipsDag(dag)}
+                  className={`px-3 py-2 rounded-lg font-semibold whitespace-nowrap flex items-center gap-1 text-sm ${
+                    tipsDag === dag 
+                      ? 'bg-cyan-600 text-white' 
+                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  Dag {dag}
+                  {synligeDager[dag] ? (
+                    <Eye className="w-3 h-3 text-green-400" />
+                  ) : (
+                    <EyeOff className="w-3 h-3 text-slate-500" />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Øvelser for valgt dag */}
+            {synligeDager[tipsDag] ? (
+              <div className="space-y-4">
+                {øvelserPerDag[tipsDag]?.map(ø => {
+                  // Beregn statistikk
+                  const teller = {};
+                  alleTips.forEach(d => {
+                    d.tips[ø.idx]?.forEach((navn, pos) => {
+                      if (navn && navn.trim()) {
+                        if (!teller[navn]) teller[navn] = { total: 0, posisjoner: {} };
+                        teller[navn].total++;
+                        teller[navn].posisjoner[pos + 1] = (teller[navn].posisjoner[pos + 1] || 0) + 1;
+                      }
+                    });
+                  });
+                  const stats = Object.entries(teller)
+                    .map(([navn, data]) => ({ navn, ...data }))
+                    .sort((a, b) => b.total - a.total);
+                  
+                  return (
+                    <div key={ø.idx} className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+                      <h3 className="font-bold text-white mb-1">{ø.øvelse}</h3>
+                      <p className="text-xs text-slate-400 mb-3">
+                        {ø.type === 'individuell' ? '5 plasser' : '3 plasser'} • {alleTips.length} deltakere
+                      </p>
+                      
+                      {/* Mest tippede */}
+                      {stats.length > 0 && (
+                        <div className="mb-4">
+                          <p className="text-xs text-cyan-400 font-semibold mb-2">📈 Mest tippet:</p>
+                          <div className="flex flex-wrap gap-2">
+                            {stats.slice(0, 5).map(({ navn, total, posisjoner }) => (
+                              <div key={navn} className="bg-cyan-900/30 border border-cyan-600/30 rounded-lg px-3 py-2">
+                                <div className="font-semibold text-white text-sm">{navn}</div>
+                                <div className="text-xs text-cyan-300">
+                                  {total}x tippet
+                                  <span className="text-slate-400 ml-1">
+                                    ({Object.entries(posisjoner).map(([pos, ant]) => `${ant}x på ${pos}.`).join(', ')})
+                                  </span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Alle deltakeres tips */}
+                      <details className="group">
+                        <summary className="cursor-pointer text-sm text-slate-400 hover:text-white flex items-center gap-1">
+                          <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform" />
+                          Se alle tips ({alleTips.length} deltakere)
+                        </summary>
+                        <div className="mt-3 space-y-2">
+                          {alleTips.map(d => (
+                            <div key={d.id} className="flex items-center gap-3 p-2 bg-slate-900/50 rounded">
+                              <span className="text-white font-semibold w-24 truncate">{d.navn}</span>
+                              <div className="flex gap-1 flex-wrap flex-1">
+                                {d.tips[ø.idx]?.map((tip, i) => (
+                                  <span key={i} className={`px-2 py-0.5 rounded text-xs ${
+                                    i === 0 ? 'bg-yellow-600/30 text-yellow-300' :
+                                    i === 1 ? 'bg-slate-500/30 text-slate-300' :
+                                    i === 2 ? 'bg-orange-600/30 text-orange-300' :
+                                    'bg-slate-700/50 text-slate-400'
+                                  }`}>
+                                    {i + 1}. {tip || '-'}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="bg-slate-800/30 rounded-xl p-8 text-center border border-slate-700">
+                <EyeOff className="w-16 h-16 mx-auto mb-3 text-slate-600" />
+                <h3 className="text-white font-bold mb-2">Dag {tipsDag} er ikke åpnet ennå</h3>
+                <p className="text-slate-400 text-sm">
+                  Tips for denne dagen vises når admin åpner dem
+                </p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* LEADERBOARD */}
         {view === 'leaderboard' && (
           <div className="space-y-3">
@@ -1394,15 +1653,21 @@ export default function OLTippingApp() {
                         <div className="flex-1 text-left">
                           <h3 className="font-bold text-white">{d.navn}</h3>
                           <p className="text-xs text-slate-400">
-                            Gull-tips: {d.gullTips} 🇳🇴
-                            {leaderboardView === 'total' && d.gullBonus > 0 && (
-                              <span className="text-yellow-400 ml-2">(+{d.gullBonus}p bonus!)</span>
+                            {gullTipsSynlig ? (
+                              <>
+                                Gull-tips: {d.gullTips} 🇳🇴
+                                {leaderboardView === 'total' && d.gullBonus > 0 && (
+                                  <span className="text-yellow-400 ml-2">(+{d.gullBonus}p bonus!)</span>
+                                )}
+                              </>
+                            ) : (
+                              <span className="text-slate-500">Gull-tips: Skjult</span>
                             )}
                           </p>
                         </div>
                         <div className="text-right">
                           <div className="text-2xl font-black text-cyan-400">{d.poeng}p</div>
-                          {leaderboardView === 'total' && d.gullBonus > 0 && (
+                          {leaderboardView === 'total' && d.gullBonus > 0 && gullTipsSynlig && (
                             <div className="text-xs text-slate-400">{d.øvelsePoeng} + {d.gullBonus}🥇</div>
                           )}
                         </div>
