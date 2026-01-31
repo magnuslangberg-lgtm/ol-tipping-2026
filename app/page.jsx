@@ -1695,42 +1695,59 @@ export default function OLTippingApp() {
                             // Dag-visning: Vis tips og poeng per øvelse
                             <div>
                               <p className="text-xs text-slate-400 mb-2 font-semibold">Øvelser dag {leaderboardView}:</p>
-                              <div className="space-y-2">
-                                {øvelserPerDag[leaderboardView]?.map(ø => {
-                                  const øvelseInfo = beregnØvelsePoeng(d, ø.idx);
-                                  const hasResult = resultater[ø.idx] && resultater[ø.idx].some(r => r?.trim());
-                                  
+                              {(() => {
+                                const dagHarResultat = øvelserPerDag[leaderboardView]?.some(ø => resultater[ø.idx]?.some(r => r?.trim()));
+                                const dagErSynlig = synligeDager[leaderboardView] || dagHarResultat;
+                                
+                                if (!dagErSynlig) {
                                   return (
-                                    <div key={ø.idx} className="bg-slate-800/50 rounded p-2">
-                                      <div className="flex justify-between items-start mb-1">
-                                        <p className="text-xs text-white font-semibold flex-1">{ø.øvelse}</p>
-                                        <span className={`text-sm font-bold ${øvelseInfo.poeng > 0 ? 'text-green-400' : 'text-slate-500'}`}>
-                                          {hasResult ? `${øvelseInfo.poeng}p` : '-'}
-                                        </span>
-                                      </div>
-                                      <div className="flex flex-wrap gap-1">
-                                        {øvelseInfo.detaljer.map((det, i) => (
-                                          <span key={i} className={`text-xs px-1.5 py-0.5 rounded ${
-                                            det.totalPoeng > 0 ? 'bg-green-600/30 text-green-200' :
-                                            det.faktiskPos ? 'bg-blue-600/30 text-blue-200' :
-                                            'bg-slate-700/50 text-slate-400'
-                                          }`}>
-                                            {det.tippPos}. {det.tip}
-                                            {det.totalPoeng > 0 && ` (+${det.totalPoeng})`}
-                                          </span>
-                                        ))}
-                                      </div>
-                                      {hasResult && (
-                                        <div className="mt-1 pt-1 border-t border-slate-700">
-                                          <p className="text-xs text-slate-500">
-                                            Resultat: {resultater[ø.idx].slice(0, ø.type === 'individuell' ? 5 : 3).map((r, i) => `${i+1}. ${r || '-'}`).join(' | ')}
-                                          </p>
-                                        </div>
-                                      )}
+                                    <div className="text-center py-4 text-slate-500">
+                                      <EyeOff className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                                      <p className="text-sm">Tips for denne dagen er skjult</p>
+                                      <p className="text-xs">Vises når resultater er registrert</p>
                                     </div>
                                   );
-                                })}
-                              </div>
+                                }
+                                
+                                return (
+                                  <div className="space-y-2">
+                                    {øvelserPerDag[leaderboardView]?.map(ø => {
+                                      const øvelseInfo = beregnØvelsePoeng(d, ø.idx);
+                                      const hasResult = resultater[ø.idx] && resultater[ø.idx].some(r => r?.trim());
+                                      
+                                      return (
+                                        <div key={ø.idx} className="bg-slate-800/50 rounded p-2">
+                                          <div className="flex justify-between items-start mb-1">
+                                            <p className="text-xs text-white font-semibold flex-1">{ø.øvelse}</p>
+                                            <span className={`text-sm font-bold ${øvelseInfo.poeng > 0 ? 'text-green-400' : 'text-slate-500'}`}>
+                                              {hasResult ? `${øvelseInfo.poeng}p` : '-'}
+                                            </span>
+                                          </div>
+                                          <div className="flex flex-wrap gap-1">
+                                            {øvelseInfo.detaljer.map((det, i) => (
+                                              <span key={i} className={`text-xs px-1.5 py-0.5 rounded ${
+                                                det.totalPoeng > 0 ? 'bg-green-600/30 text-green-200' :
+                                                det.faktiskPos ? 'bg-blue-600/30 text-blue-200' :
+                                                'bg-slate-700/50 text-slate-400'
+                                              }`}>
+                                                {det.tippPos}. {det.tip}
+                                                {det.totalPoeng > 0 && ` (+${det.totalPoeng})`}
+                                              </span>
+                                            ))}
+                                          </div>
+                                          {hasResult && (
+                                            <div className="mt-1 pt-1 border-t border-slate-700">
+                                              <p className="text-xs text-slate-500">
+                                                Resultat: {resultater[ø.idx].slice(0, ø.type === 'individuell' ? 5 : 3).map((r, i) => `${i+1}. ${r || '-'}`).join(' | ')}
+                                              </p>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           )}
                         </div>
