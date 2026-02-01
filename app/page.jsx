@@ -146,6 +146,64 @@ async function downloadExcelTemplate() {
   xlsx.writeFile(wb, 'OL_Tippeskjema_2026.xlsx');
 }
 
+// Funksjon for å eksportere utfylte tips til Excel
+async function downloadFilledExcel(navn, tips, gullTips) {
+  const xlsx = await loadXLSX();
+  const wb = xlsx.utils.book_new();
+  
+  // Data for tippeskjemaet
+  const data = [
+    ['🏔️ OL-TIPPESKJEMA 2026 - Milano-Cortina'],
+    [],
+    ['👤 DITT NAVN:', navn || '', '', '⬅️ Fyll inn her (celle B3)'],
+    [],
+    ['INSTRUKSJONER:'],
+    ['• Individuelle øvelser (IND): Fyll inn 5 utøvere i kolonne D-H'],
+    ['• Lagøvelser (LAG): Fyll inn 3 nasjoner i kolonne D-F'],
+    ['• Send ferdig utfylt skjema til admin før fristen'],
+    [],
+    ['DAG', 'ØVELSE', 'TYPE', '🥇 1. GULL', '🥈 2. SØLV', '🥉 3. BRONSE', '4.', '5.'],
+  ];
+  
+  // Øvelser med tips
+  OL_PROGRAM.forEach((ø, idx) => {
+    const øvelseTips = tips[idx] || [];
+    data.push([
+      `Dag ${ø.dag}`, 
+      ø.øvelse, 
+      ø.type === 'individuell' ? 'IND' : 'LAG',
+      øvelseTips[0] || '',
+      øvelseTips[1] || '',
+      øvelseTips[2] || '',
+      øvelseTips[3] || '',
+      øvelseTips[4] || ''
+    ]);
+  });
+  
+  // Norske gull nederst
+  data.push([]);
+  data.push(['🇳🇴 NORSKE GULL TOTALT:', gullTips || '', '', '⬅️ Fyll inn tall her (celle B67)']);
+  data.push(['Poeng: Eksakt 30p | Bommer med 1: 20p | Bommer med 2: 10p']);
+  
+  const ws = xlsx.utils.aoa_to_sheet(data);
+  
+  // Sett kolonnebredder
+  ws['!cols'] = [
+    { wch: 12 },  // DAG
+    { wch: 42 },  // ØVELSE
+    { wch: 8 },   // TYPE
+    { wch: 20 },  // 1.
+    { wch: 20 },  // 2.
+    { wch: 20 },  // 3.
+    { wch: 18 },  // 4.
+    { wch: 18 },  // 5.
+  ];
+  
+  xlsx.utils.book_append_sheet(wb, ws, 'Tippeskjema');
+  const filnavn = navn ? `OL_Tips_${navn.replace(/\s+/g, '_')}.xlsx` : 'OL_Tippeskjema_2026_utfylt.xlsx';
+  xlsx.writeFile(wb, filnavn);
+}
+
 // Funksjon for å parse opplastet Excel-fil
 async function parseExcelFile(file, callback) {
   try {
@@ -1341,12 +1399,21 @@ export default function OLTippingApp() {
                     placeholder="Antall gull..." className="w-24 px-3 py-2 bg-slate-900 border border-red-600/50 rounded-lg text-white text-center font-bold text-lg" />
                 </div>
 
-                {/* Send inn */}
-                <div className="sticky bottom-4">
+                {/* Send inn eller eksporter */}
+                <div className="sticky bottom-4 space-y-2">
                   <button onClick={handleSubmit}
                     className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl flex items-center justify-center gap-2">
                     <Send className="w-5 h-5" /> Send inn tips
                   </button>
+                  <button 
+                    onClick={() => downloadFilledExcel(deltakerNavn, tips, gullTips)}
+                    className="w-full py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold rounded-xl flex items-center justify-center gap-2 text-sm"
+                  >
+                    <Download className="w-4 h-4" /> Eksporter til Excel (fortsett senere)
+                  </button>
+                  <p className="text-xs text-slate-500 text-center">
+                    Eksporter det du har fylt ut og send på mail til admin
+                  </p>
                 </div>
               </>
             )}
