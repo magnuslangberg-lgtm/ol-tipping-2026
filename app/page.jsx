@@ -812,6 +812,7 @@ export default function OLTippingApp() {
   const [synligeDager, setSynligeDager] = useState({}); // { 1: true, 2: false, ... }
   const [gullTipsSynlig, setGullTipsSynlig] = useState(false);
   const [tipsDag, setTipsDag] = useState(1); // Valgt dag på Tips-siden
+  const [påmeldingLåst, setPåmeldingLåst] = useState(false); // Lås påmelding etter frist
 
   useEffect(() => {
     const init = {};
@@ -847,6 +848,7 @@ export default function OLTippingApp() {
       if (docSnap.exists()) {
         setSynligeDager(docSnap.data().dager || {});
         setGullTipsSynlig(docSnap.data().gullTips || false);
+        setPåmeldingLåst(docSnap.data().påmeldingLåst || false);
       }
     }, (error) => {
       console.error('Feil ved lasting av synlighet:', error);
@@ -861,11 +863,12 @@ export default function OLTippingApp() {
   }, []);
 
   // Lagre synlighetsinnstillinger til Firebase
-  const saveSynlighetToFirebase = async (dager, gullTips) => {
+  const saveSynlighetToFirebase = async (dager, gullTips, låst = påmeldingLåst) => {
     try {
       await setDoc(doc(db, 'config', 'synlighet'), { 
         dager: dager,
-        gullTips: gullTips
+        gullTips: gullTips,
+        påmeldingLåst: låst
       });
     } catch (e) {
       console.error('Feil ved lagring av synlighet:', e);
@@ -1321,7 +1324,24 @@ export default function OLTippingApp() {
         {/* TIPPING */}
         {view === 'tipping' && (
           <div className="space-y-4">
-            {submitted ? (
+            {påmeldingLåst ? (
+              // Påmelding er stengt
+              <div className="text-center py-12">
+                <Lock className="w-16 h-16 text-red-400 mx-auto mb-3" />
+                <h2 className="text-2xl font-bold text-red-400">Påmeldingen er stengt</h2>
+                <p className="text-slate-300 mb-4 max-w-md mx-auto">
+                  Fristen for å sende inn tips har gått ut. Kontakt admin hvis du ønsker å delta likevel.
+                </p>
+                <div className="space-y-2">
+                  <button onClick={() => setView('leaderboard')} className="px-6 py-2 bg-blue-600 text-white rounded-lg">
+                    Se resultater
+                  </button>
+                  <p className="text-xs text-slate-500">
+                    Kontakt: <a href="mailto:magnuslangberg@gmail.com" className="text-cyan-400 hover:underline">magnuslangberg@gmail.com</a>
+                  </p>
+                </div>
+              </div>
+            ) : submitted ? (
               <div className="text-center py-12">
                 <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-3" />
                 <h2 className="text-2xl font-bold text-green-400">Tips innsendt!</h2>
@@ -1856,6 +1876,38 @@ export default function OLTippingApp() {
                   <button onClick={() => setIsAdminLoggedIn(false)} className="text-red-400 text-sm flex items-center gap-1">
                     <LogOut className="w-4 h-4" /> Logg ut
                   </button>
+                </div>
+
+                {/* Lås påmelding */}
+                <div className={`rounded-xl p-4 border ${påmeldingLåst ? 'bg-red-900/30 border-red-500/50' : 'bg-slate-800/50 border-slate-700'}`}>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-bold text-white flex items-center gap-2">
+                        🔒 Lås påmelding
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-1">
+                        {påmeldingLåst 
+                          ? 'Påmelding er stengt - ingen kan sende inn tips via nettsiden' 
+                          : 'Påmelding er åpen - deltakere kan sende inn tips'}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => {
+                        const nyVerdi = !påmeldingLåst;
+                        setPåmeldingLåst(nyVerdi);
+                        saveSynlighetToFirebase(synligeDager, gullTipsSynlig, nyVerdi);
+                      }}
+                      className={`px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 ${
+                        påmeldingLåst ? 'bg-red-600 text-white' : 'bg-green-600 text-white'
+                      }`}
+                    >
+                      {påmeldingLåst ? (
+                        <><Lock className="w-4 h-4" /> Låst</>
+                      ) : (
+                        <><Eye className="w-4 h-4" /> Åpen</>
+                      )}
+                    </button>
+                  </div>
                 </div>
 
                 {/* Excel opplasting */}
