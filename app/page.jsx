@@ -813,6 +813,15 @@ export default function OLTippingApp() {
   const [gullTipsSynlig, setGullTipsSynlig] = useState(false);
   const [tipsDag, setTipsDag] = useState(1); // Valgt dag på Tips-siden
   const [påmeldingLåst, setPåmeldingLåst] = useState(false); // Lås påmelding etter frist
+  
+  // Deltaker-innlogging for redigering
+  const [isEditMode, setIsEditMode] = useState(false); // Redigeringsmodus
+  const [loggedInDeltaker, setLoggedInDeltaker] = useState(null); // Innlogget deltaker
+  const [deltakerLoginNavn, setDeltakerLoginNavn] = useState('');
+  const [deltakerLoginPin, setDeltakerLoginPin] = useState('');
+  const [deltakerLoginError, setDeltakerLoginError] = useState('');
+  const [nyPin, setNyPin] = useState(''); // For å sette PIN ved første innsending
+  const [editSaveStatus, setEditSaveStatus] = useState(null);
 
   useEffect(() => {
     const init = {};
@@ -936,9 +945,21 @@ export default function OLTippingApp() {
     return UTØVERE[sport] || [];
   };
 
+  // Generer PIN basert på navn (for Excel-opplasting)
+  const genererPin = (navn) => {
+    // Enkel hash basert på navn + hemmelig tall
+    const base = navn.toLowerCase().replace(/\s/g, '');
+    let sum = 2026; // Base-tall
+    for (let i = 0; i < base.length; i++) {
+      sum += base.charCodeAt(i) * (i + 1);
+    }
+    return (sum % 9000 + 1000).toString(); // 4-sifret PIN mellom 1000-9999
+  };
+
   const handleSubmit = async () => {
     if (!deltakerNavn.trim()) return alert('Fyll inn navnet ditt!');
     if (!gullTips || isNaN(gullTips)) return alert('Tipp antall norske gull!');
+    if (!nyPin || nyPin.length !== 4 || isNaN(nyPin)) return alert('Velg en 4-sifret PIN-kode for å kunne redigere tipsene dine senere!');
     if (alleTips.some(t => t.navn.toLowerCase() === deltakerNavn.toLowerCase())) {
       return alert('Dette navnet er allerede registrert!');
     }
@@ -947,6 +968,7 @@ export default function OLTippingApp() {
       navn: deltakerNavn,
       tips: { ...tips },
       gullTips: parseInt(gullTips),
+      pin: nyPin,
       innsendt: new Date().toLocaleString('no-NO'),
     };
     const success = await addDeltakerToFirebase(nyDeltaker);
@@ -955,6 +977,70 @@ export default function OLTippingApp() {
     } else {
       alert('Kunne ikke lagre tips. Prøv igjen.');
     }
+  };
+
+  // Logg inn deltaker for redigering
+  const handleDeltakerLogin = () => {
+    const deltaker = alleTips.find(d => d.navn.toLowerCase() === deltakerLoginNavn.toLowerCase());
+    if (!deltaker) {
+      setDeltakerLoginError('Finner ikke deltaker med dette navnet');
+      return;
+    }
+    // Sjekk PIN (enten brukervalgt eller generert)
+    const riktigPin = deltaker.pin || genererPin(deltaker.navn);
+    if (deltakerLoginPin !== riktigPin) {
+      setDeltakerLoginError('Feil PIN-kode');
+      return;
+    }
+    // Innlogging vellykket
+    setLoggedInDeltaker(deltaker);
+    setDeltakerLoginError('');
+    setIsEditMode(true);
+    // Last inn eksisterende tips
+    setTips(deltaker.tips || {});
+    setGullTips(deltaker.gullTips?.toString() || '');
+    setDeltakerNavn(deltaker.navn);
+  };
+
+  // Lagre redigerte tips
+  const handleSaveEdit = async () => {
+    if (!loggedInDeltaker) return;
+    
+    const oppdatertDeltaker = {
+      ...loggedInDeltaker,
+      tips: { ...tips },
+      gullTips: parseInt(gullTips) || loggedInDeltaker.gullTips,
+      sistEndret: new Date().toLocaleString('no-NO'),
+    };
+    
+    const success = await addDeltakerToFirebase(oppdatertDeltaker);
+    if (success) {
+      setEditSaveStatus({ type: 'success', message: 'Endringer lagret!' });
+      setTimeout(() => setEditSaveStatus(null), 3000);
+    } else {
+      setEditSaveStatus({ type: 'error', message: 'Kunne ikke lagre endringer' });
+    }
+  };
+
+  // Logg ut deltaker
+  const handleDeltakerLogout = () => {
+    setLoggedInDeltaker(null);
+    setIsEditMode(false);
+    setDeltakerLoginNavn('');
+    setDeltakerLoginPin('');
+    // Reset tips
+    const init = {};
+    OL_PROGRAM.forEach((ø, idx) => { init[idx] = ø.type === 'individuell' ? ['','','','',''] : ['','','']; });
+    setTips(init);
+    setGullTips('');
+    setDeltakerNavn('');
+  };
+
+  // Sjekk om en dag kan redigeres (ikke åpnet/har resultater)
+  const kanRedigereDag = (dag) => {
+    const dagHarResultat = øvelserPerDag[dag]?.some(ø => resultater[ø.idx]?.some(r => r?.trim()));
+    const dagErSynlig = synligeDager[dag];
+    return !dagHarResultat && !dagErSynlig;
   };
 
   // Finn ukjente navn for en deltaker
@@ -1324,39 +1410,205 @@ export default function OLTippingApp() {
         {/* TIPPING */}
         {view === 'tipping' && (
           <div className="space-y-4">
-            {påmeldingLåst ? (
-              // Påmelding er stengt
-              <div className="text-center py-12">
-                <Lock className="w-16 h-16 text-red-400 mx-auto mb-3" />
-                <h2 className="text-2xl font-bold text-red-400">Påmeldingen er stengt</h2>
-                <p className="text-slate-300 mb-4 max-w-md mx-auto">
-                  Fristen for å sende inn tips har gått ut. Kontakt admin hvis du ønsker å delta likevel.
-                </p>
-                <div className="space-y-2">
-                  <button onClick={() => setView('leaderboard')} className="px-6 py-2 bg-blue-600 text-white rounded-lg">
-                    Se resultater
-                  </button>
-                  <p className="text-xs text-slate-500">
-                    Kontakt: <a href="mailto:magnuslangberg@gmail.com" className="text-cyan-400 hover:underline">magnuslangberg@gmail.com</a>
+            {påmeldingLåst && !isEditMode ? (
+              // Påmelding er stengt - men kan endre eksisterende tips
+              <div className="space-y-4">
+                <div className="text-center py-8">
+                  <Lock className="w-12 h-12 text-red-400 mx-auto mb-3" />
+                  <h2 className="text-xl font-bold text-red-400">Påmeldingen er stengt</h2>
+                  <p className="text-slate-300 mb-4 text-sm">
+                    Fristen for nye tips har gått ut.
                   </p>
                 </div>
+                
+                {/* Endre mine tips - innlogging */}
+                <div className="bg-blue-900/30 rounded-xl p-4 border border-blue-500/50">
+                  <h3 className="font-bold text-blue-400 mb-3 flex items-center gap-2">
+                    ✏️ Allerede sendt inn? Endre dine tips
+                  </h3>
+                  <p className="text-xs text-blue-200 mb-3">
+                    Du kan endre tips for øvelser som ikke har startet ennå.
+                  </p>
+                  
+                  {deltakerLoginError && (
+                    <div className="mb-3 p-2 bg-red-900/50 border border-red-500 rounded text-red-200 text-sm">
+                      {deltakerLoginError}
+                    </div>
+                  )}
+                  
+                  <div className="space-y-2">
+                    <input 
+                      type="text" 
+                      value={deltakerLoginNavn}
+                      onChange={(e) => setDeltakerLoginNavn(e.target.value)}
+                      placeholder="Ditt navn..."
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white"
+                    />
+                    <input 
+                      type="password" 
+                      value={deltakerLoginPin}
+                      onChange={(e) => setDeltakerLoginPin(e.target.value)}
+                      placeholder="Din 4-sifrede PIN..."
+                      maxLength={4}
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white"
+                    />
+                    <button 
+                      onClick={handleDeltakerLogin}
+                      className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg"
+                    >
+                      Logg inn og endre tips
+                    </button>
+                  </div>
+                </div>
               </div>
+            ) : isEditMode && loggedInDeltaker ? (
+              // Redigeringsmodus - innlogget deltaker
+              <>
+                <div className="bg-green-900/30 rounded-xl p-4 border border-green-500/50">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-bold text-green-400 flex items-center gap-2">
+                        ✏️ Redigerer: {loggedInDeltaker.navn}
+                      </h3>
+                      <p className="text-xs text-green-200">Du kan endre tips for dager som ikke er åpnet ennå</p>
+                    </div>
+                    <button 
+                      onClick={handleDeltakerLogout}
+                      className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg"
+                    >
+                      Logg ut
+                    </button>
+                  </div>
+                </div>
+
+                {/* Øvelser for redigering */}
+                <div className="space-y-2">
+                  {Object.entries(øvelserPerDag).map(([dag, øvelser]) => {
+                    const kanRedigere = kanRedigereDag(parseInt(dag));
+                    return (
+                      <div key={dag} className={`rounded-xl border overflow-hidden ${kanRedigere ? 'bg-slate-800/50 border-slate-700' : 'bg-slate-900/50 border-slate-800 opacity-60'}`}>
+                        <button onClick={() => kanRedigere && toggleDay(parseInt(dag))}
+                          className={`w-full px-4 py-3 flex items-center justify-between ${kanRedigere ? 'bg-slate-700/50 hover:bg-slate-700' : 'bg-slate-800/50 cursor-not-allowed'}`}>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-lg font-black ${kanRedigere ? 'text-cyan-400' : 'text-slate-500'}`}>Dag {dag}</span>
+                            <span className={`text-sm ${kanRedigere ? 'text-blue-300' : 'text-slate-500'}`}>{øvelser[0].dato}</span>
+                            {!kanRedigere && (
+                              <span className="text-xs bg-red-600/50 text-red-200 px-2 py-0.5 rounded">🔒 Låst</span>
+                            )}
+                          </div>
+                          {kanRedigere && (expandedDays[dag] ? <ChevronUp className="w-5 h-5 text-cyan-400" /> : <ChevronDown className="w-5 h-5 text-slate-400" />)}
+                        </button>
+                        
+                        {kanRedigere && expandedDays[dag] && (
+                          <div className="p-3 space-y-3">
+                            {øvelser.map((ø) => (
+                              <div key={ø.idx} className={`rounded-lg p-3 ${SPORT_COLORS[ø.sport]?.light} border ${SPORT_COLORS[ø.sport]?.border}`}>
+                                <div className="flex items-center gap-2 mb-2">
+                                  <span className={`px-2 py-0.5 rounded text-xs font-bold text-white ${SPORT_COLORS[ø.sport]?.bg}`}>
+                                    {ø.sport.toUpperCase()}
+                                  </span>
+                                  <span className={`px-2 py-0.5 rounded text-xs font-semibold ${ø.type === 'lag' ? 'bg-green-600' : 'bg-blue-600'} text-white`}>
+                                    {ø.type === 'lag' ? 'LAG' : 'IND'}
+                                  </span>
+                                </div>
+                                <h4 className="font-semibold text-slate-800 text-sm mb-2">{ø.øvelse}</h4>
+                                <div className="grid gap-1.5">
+                                  {(ø.type === 'individuell' ? [0,1,2,3,4] : [0,1,2]).map((pos) => (
+                                    <AutocompleteInput
+                                      key={pos}
+                                      value={tips[ø.idx]?.[pos] || ''}
+                                      onChange={(val) => {
+                                        const newTips = { ...tips };
+                                        if (!newTips[ø.idx]) newTips[ø.idx] = ø.type === 'individuell' ? ['','','','',''] : ['','',''];
+                                        newTips[ø.idx][pos] = val;
+                                        setTips(newTips);
+                                      }}
+                                      suggestions={getSuggestions(ø.sport, ø.type)}
+                                      placeholder={`${pos + 1}. ${pos === 0 ? 'Gull' : pos === 1 ? 'Sølv' : pos === 2 ? 'Bronse' : `plass`}...`}
+                                      className={`w-full px-3 py-1.5 text-sm border rounded-lg ${
+                                        pos === 0 ? 'bg-yellow-50 border-yellow-300' :
+                                        pos === 1 ? 'bg-slate-100 border-slate-300' :
+                                        pos === 2 ? 'bg-orange-50 border-orange-300' :
+                                        'bg-white border-slate-200'
+                                      }`}
+                                    />
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Gull-tips (kan redigeres hvis ikke synlig) */}
+                {!gullTipsSynlig && (
+                  <div className="bg-gradient-to-r from-red-900/50 to-red-800/50 rounded-xl p-4 border border-red-600/30">
+                    <label className="block text-sm font-bold text-red-300 mb-2">🇳🇴 Hvor mange gull tar Norge totalt?</label>
+                    <input type="number" min="0" max="50" value={gullTips} onChange={(e) => setGullTips(e.target.value)}
+                      placeholder="Antall gull..." className="w-24 px-3 py-2 bg-slate-900 border border-red-600/50 rounded-lg text-white text-center font-bold text-lg" />
+                  </div>
+                )}
+
+                {/* Lagre endringer */}
+                <div className="sticky bottom-4 space-y-2">
+                  {editSaveStatus && (
+                    <div className={`p-3 rounded-lg text-center ${
+                      editSaveStatus.type === 'success' ? 'bg-green-900/50 text-green-200' : 'bg-red-900/50 text-red-200'
+                    }`}>
+                      {editSaveStatus.message}
+                    </div>
+                  )}
+                  <button onClick={handleSaveEdit}
+                    className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold rounded-xl flex items-center justify-center gap-2">
+                    <CheckCircle className="w-5 h-5" /> Lagre endringer
+                  </button>
+                </div>
+              </>
             ) : submitted ? (
               <div className="text-center py-12">
                 <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-3" />
                 <h2 className="text-2xl font-bold text-green-400">Tips innsendt!</h2>
-                <p className="text-blue-200 mb-4">Takk {deltakerNavn}!</p>
+                <p className="text-blue-200 mb-2">Takk {deltakerNavn}!</p>
+                <p className="text-sm text-slate-400 mb-4">Husk PIN-koden din: <span className="font-bold text-yellow-400">{nyPin}</span></p>
                 <button onClick={() => setView('leaderboard')} className="px-6 py-2 bg-blue-600 text-white rounded-lg">
                   Se leaderboard
                 </button>
               </div>
             ) : (
               <>
-                {/* Navn */}
+                {/* Endre tips-knapp for eksisterende deltakere */}
+                <div className="bg-blue-900/30 rounded-xl p-3 border border-blue-500/30">
+                  <button 
+                    onClick={() => {
+                      // Vis innlogging-modal
+                      setIsEditMode(true);
+                      setPåmeldingLåst(true); // Midlertidig for å vise innlogging
+                    }}
+                    className="w-full text-blue-300 text-sm flex items-center justify-center gap-2 hover:text-blue-200"
+                  >
+                    ✏️ Allerede sendt inn? Klikk her for å endre dine tips
+                  </button>
+                </div>
+
+                {/* Navn og PIN */}
                 <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
                   <label className="block text-sm font-bold text-cyan-400 mb-2">Ditt navn:</label>
                   <input type="text" value={deltakerNavn} onChange={(e) => setDeltakerNavn(e.target.value)}
-                    placeholder="Skriv navnet ditt..." className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white" />
+                    placeholder="Skriv navnet ditt..." className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white mb-3" />
+                  
+                  <label className="block text-sm font-bold text-yellow-400 mb-2">Velg en 4-sifret PIN-kode:</label>
+                  <p className="text-xs text-slate-400 mb-2">Du trenger denne for å kunne endre tipsene dine senere</p>
+                  <input 
+                    type="password" 
+                    value={nyPin} 
+                    onChange={(e) => setNyPin(e.target.value.replace(/\D/g, '').slice(0, 4))}
+                    placeholder="F.eks. 1234" 
+                    maxLength={4}
+                    className="w-32 px-3 py-2 bg-slate-900 border border-yellow-600/50 rounded-lg text-white text-center font-bold text-lg" 
+                  />
                 </div>
 
                 {/* Øvelser */}
@@ -1977,11 +2229,15 @@ export default function OLTippingApp() {
                               fullTips[idx] = result.tips[idx] || (ø.type === 'individuell' ? ['','','','',''] : ['','','']);
                             });
                             
+                            // Generer PIN for deltakeren
+                            const deltakerPin = genererPin(result.navn);
+                            
                             const nyDeltaker = {
                               id: Date.now().toString(),
                               navn: result.navn,
                               tips: fullTips,
                               gullTips: result.gullTips || 0,
+                              pin: deltakerPin,
                               innsendt: new Date().toLocaleString('no-NO') + ' (Excel)',
                             };
                             
@@ -1989,14 +2245,14 @@ export default function OLTippingApp() {
                             if (success) {
                               setUploadStatus({ 
                                 type: 'success', 
-                                message: `${result.navn} lagt til! Gull-tips: ${result.gullTips}, Utfylte tips: ${utfylteTips}` 
+                                message: `${result.navn} lagt til! PIN: ${deltakerPin} | Gull-tips: ${result.gullTips}, Utfylte tips: ${utfylteTips}` 
                               });
                             } else {
                               setUploadStatus({ type: 'error', message: 'Kunne ikke lagre til database' });
                             }
                             
-                            // Fjern suksess-melding etter 5 sekunder
-                            setTimeout(() => setUploadStatus(null), 5000);
+                            // Fjern suksess-melding etter 8 sekunder (litt lenger for å notere PIN)
+                            setTimeout(() => setUploadStatus(null), 8000);
                           });
                         } catch (err) {
                           setUploadStatus({ type: 'error', message: 'Feil ved lesing av fil: ' + err.message });
@@ -2112,7 +2368,10 @@ export default function OLTippingApp() {
                                       <span className="bg-yellow-500 text-yellow-900 text-xs px-1.5 rounded-full font-bold">{unknowns.length}</span>
                                     )}
                                   </div>
-                                  <span className="text-xs text-slate-400">Gull: {d.gullTips}</span>
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-yellow-400" title="PIN-kode">🔑 {d.pin || genererPin(d.navn)}</span>
+                                    <span className="text-xs text-slate-400">Gull: {d.gullTips}</span>
+                                  </div>
                                 </button>
                                 <button
                                   onClick={(e) => {
