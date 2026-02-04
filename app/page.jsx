@@ -1194,8 +1194,8 @@ export default function OLTippingApp() {
         <div className="max-w-6xl mx-auto px-4 flex gap-1 py-2 overflow-x-auto">
           {[
             { id: 'info', label: 'Info', icon: AlertCircle },
-            { id: 'tipping', label: 'Tipping', icon: Send },
-            { id: 'tips', label: 'Tips', icon: Users },
+            { id: 'tipping', label: 'Tipping / Endre', icon: Send },
+            { id: 'tips', label: 'Alle tips', icon: Users },
             { id: 'leaderboard', label: 'Resultater', icon: Trophy },
             { id: 'admin', label: 'Admin', icon: Lock },
           ].map(({ id, label, icon: Icon }) => (
@@ -1318,6 +1318,17 @@ export default function OLTippingApp() {
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Info om endring av tips */}
+            <div className="bg-blue-900/30 rounded-xl p-4 border border-blue-500/30">
+              <h3 className="font-bold text-blue-400 mb-2 flex items-center gap-2">
+                ✏️ Endre innsendte tips
+              </h3>
+              <p className="text-sm text-blue-200">
+                Du kan endre tipsene dine frem til kl. 24:00 dagen før øvelsene starter. 
+                Gå til <span className="font-semibold text-white">"Tipping / Endre"</span> og logg inn med navn og PIN-kode.
+              </p>
             </div>
 
             <button onClick={() => setView('tipping')}
@@ -1575,9 +1586,24 @@ export default function OLTippingApp() {
                 <h2 className="text-2xl font-bold text-green-400">Tips innsendt!</h2>
                 <p className="text-blue-200 mb-2">Takk {deltakerNavn}!</p>
                 <p className="text-sm text-slate-400 mb-4">Husk PIN-koden din: <span className="font-bold text-yellow-400">{nyPin}</span></p>
-                <button onClick={() => setView('leaderboard')} className="px-6 py-2 bg-blue-600 text-white rounded-lg">
-                  Se leaderboard
-                </button>
+                <div className="space-y-3">
+                  <button onClick={() => setView('leaderboard')} className="px-6 py-2 bg-blue-600 text-white rounded-lg">
+                    Se leaderboard
+                  </button>
+                  <div>
+                    <button 
+                      onClick={() => {
+                        setSubmitted(false);
+                        setDeltakerLoginNavn(deltakerNavn);
+                        setDeltakerLoginPin(nyPin);
+                        setShowLoginModal(true);
+                      }} 
+                      className="text-blue-300 text-sm hover:text-blue-200 underline"
+                    >
+                      ✏️ Endre mine tips
+                    </button>
+                  </div>
+                </div>
               </div>
             ) : (
               <>
@@ -1749,7 +1775,7 @@ export default function OLTippingApp() {
         {view === 'tips' && (
           <div className="space-y-4">
             <div className="text-center">
-              <h2 className="text-xl font-black text-cyan-400">📊 SE ALLES TIPS</h2>
+              <h2 className="text-xl font-black text-cyan-400">📊 DELTAKERNES TIPS</h2>
               <p className="text-sm text-slate-400 mt-1">Se hva deltakerne har tippet</p>
             </div>
 
