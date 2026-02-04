@@ -822,6 +822,7 @@ export default function OLTippingApp() {
   const [deltakerLoginError, setDeltakerLoginError] = useState('');
   const [nyPin, setNyPin] = useState(''); // For å sette PIN ved første innsending
   const [editSaveStatus, setEditSaveStatus] = useState(null);
+  const [showLoginModal, setShowLoginModal] = useState(false); // Vis innloggingsmodal
 
   useEffect(() => {
     const init = {};
@@ -996,6 +997,7 @@ export default function OLTippingApp() {
     setLoggedInDeltaker(deltaker);
     setDeltakerLoginError('');
     setIsEditMode(true);
+    setShowLoginModal(false);
     // Last inn eksisterende tips
     setTips(deltaker.tips || {});
     setGullTips(deltaker.gullTips?.toString() || '');
@@ -1410,58 +1412,7 @@ export default function OLTippingApp() {
         {/* TIPPING */}
         {view === 'tipping' && (
           <div className="space-y-4">
-            {påmeldingLåst && !isEditMode ? (
-              // Påmelding er stengt - men kan endre eksisterende tips
-              <div className="space-y-4">
-                <div className="text-center py-8">
-                  <Lock className="w-12 h-12 text-red-400 mx-auto mb-3" />
-                  <h2 className="text-xl font-bold text-red-400">Påmeldingen er stengt</h2>
-                  <p className="text-slate-300 mb-4 text-sm">
-                    Fristen for nye tips har gått ut.
-                  </p>
-                </div>
-                
-                {/* Endre mine tips - innlogging */}
-                <div className="bg-blue-900/30 rounded-xl p-4 border border-blue-500/50">
-                  <h3 className="font-bold text-blue-400 mb-3 flex items-center gap-2">
-                    ✏️ Allerede sendt inn? Endre dine tips
-                  </h3>
-                  <p className="text-xs text-blue-200 mb-3">
-                    Du kan endre tips for øvelser som ikke har startet ennå.
-                  </p>
-                  
-                  {deltakerLoginError && (
-                    <div className="mb-3 p-2 bg-red-900/50 border border-red-500 rounded text-red-200 text-sm">
-                      {deltakerLoginError}
-                    </div>
-                  )}
-                  
-                  <div className="space-y-2">
-                    <input 
-                      type="text" 
-                      value={deltakerLoginNavn}
-                      onChange={(e) => setDeltakerLoginNavn(e.target.value)}
-                      placeholder="Ditt navn..."
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white"
-                    />
-                    <input 
-                      type="password" 
-                      value={deltakerLoginPin}
-                      onChange={(e) => setDeltakerLoginPin(e.target.value)}
-                      placeholder="Din 4-sifrede PIN..."
-                      maxLength={4}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white"
-                    />
-                    <button 
-                      onClick={handleDeltakerLogin}
-                      className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg"
-                    >
-                      Logg inn og endre tips
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ) : isEditMode && loggedInDeltaker ? (
+            {isEditMode && loggedInDeltaker ? (
               // Redigeringsmodus - innlogget deltaker
               <>
                 <div className="bg-green-900/30 rounded-xl p-4 border border-green-500/50">
@@ -1567,6 +1518,57 @@ export default function OLTippingApp() {
                   </button>
                 </div>
               </>
+            ) : påmeldingLåst ? (
+              // Påmelding er stengt - men kan endre eksisterende tips
+              <div className="space-y-4">
+                <div className="text-center py-8">
+                  <Lock className="w-12 h-12 text-red-400 mx-auto mb-3" />
+                  <h2 className="text-xl font-bold text-red-400">Påmeldingen er stengt</h2>
+                  <p className="text-slate-300 mb-4 text-sm">
+                    Fristen for nye tips har gått ut.
+                  </p>
+                </div>
+                
+                {/* Endre mine tips - innlogging */}
+                <div className="bg-blue-900/30 rounded-xl p-4 border border-blue-500/50">
+                  <h3 className="font-bold text-blue-400 mb-3 flex items-center gap-2">
+                    ✏️ Allerede sendt inn? Endre dine tips
+                  </h3>
+                  <p className="text-xs text-blue-200 mb-3">
+                    Du kan endre tips for øvelser som ikke har startet ennå.
+                  </p>
+                  
+                  {deltakerLoginError && (
+                    <div className="mb-3 p-2 bg-red-900/50 border border-red-500 rounded text-red-200 text-sm">
+                      {deltakerLoginError}
+                    </div>
+                  )}
+                  
+                  <div className="space-y-2">
+                    <input 
+                      type="text" 
+                      value={deltakerLoginNavn}
+                      onChange={(e) => setDeltakerLoginNavn(e.target.value)}
+                      placeholder="Ditt navn..."
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white"
+                    />
+                    <input 
+                      type="password" 
+                      value={deltakerLoginPin}
+                      onChange={(e) => setDeltakerLoginPin(e.target.value)}
+                      placeholder="Din 4-sifrede PIN..."
+                      maxLength={4}
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white"
+                    />
+                    <button 
+                      onClick={handleDeltakerLogin}
+                      className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg"
+                    >
+                      Logg inn og endre tips
+                    </button>
+                  </div>
+                </div>
+              </div>
             ) : submitted ? (
               <div className="text-center py-12">
                 <CheckCircle className="w-16 h-16 text-green-400 mx-auto mb-3" />
@@ -1583,15 +1585,66 @@ export default function OLTippingApp() {
                 <div className="bg-blue-900/30 rounded-xl p-3 border border-blue-500/30">
                   <button 
                     onClick={() => {
-                      // Vis innlogging-modal
-                      setIsEditMode(true);
-                      setPåmeldingLåst(true); // Midlertidig for å vise innlogging
+                      setShowLoginModal(true);
+                      setDeltakerLoginError('');
                     }}
                     className="w-full text-blue-300 text-sm flex items-center justify-center gap-2 hover:text-blue-200"
                   >
                     ✏️ Allerede sendt inn? Klikk her for å endre dine tips
                   </button>
                 </div>
+
+                {/* Innloggingsmodal */}
+                {showLoginModal && (
+                  <div className="bg-blue-900/30 rounded-xl p-4 border border-blue-500/50">
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="font-bold text-blue-400 flex items-center gap-2">
+                        🔑 Logg inn for å endre tips
+                      </h3>
+                      <button 
+                        onClick={() => {
+                          setShowLoginModal(false);
+                          setDeltakerLoginError('');
+                          setDeltakerLoginNavn('');
+                          setDeltakerLoginPin('');
+                        }}
+                        className="text-slate-400 hover:text-white"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                    
+                    {deltakerLoginError && (
+                      <div className="mb-3 p-2 bg-red-900/50 border border-red-500 rounded text-red-200 text-sm">
+                        {deltakerLoginError}
+                      </div>
+                    )}
+                    
+                    <div className="space-y-2">
+                      <input 
+                        type="text" 
+                        value={deltakerLoginNavn}
+                        onChange={(e) => setDeltakerLoginNavn(e.target.value)}
+                        placeholder="Ditt navn..."
+                        className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white"
+                      />
+                      <input 
+                        type="password" 
+                        value={deltakerLoginPin}
+                        onChange={(e) => setDeltakerLoginPin(e.target.value)}
+                        placeholder="Din 4-sifrede PIN..."
+                        maxLength={4}
+                        className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white"
+                      />
+                      <button 
+                        onClick={handleDeltakerLogin}
+                        className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg"
+                      >
+                        Logg inn
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Navn og PIN */}
                 <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
