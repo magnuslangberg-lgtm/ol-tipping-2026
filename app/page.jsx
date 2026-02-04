@@ -1674,9 +1674,9 @@ export default function OLTippingApp() {
 
                 {/* Navn og PIN */}
                 <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
-                  <label className="block text-sm font-bold text-cyan-400 mb-2">Ditt navn:</label>
+                  <label className="block text-sm font-bold text-cyan-400 mb-2">Lagnavn:</label>
                   <input type="text" value={deltakerNavn} onChange={(e) => setDeltakerNavn(e.target.value)}
-                    placeholder="Skriv navnet ditt..." className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white mb-3" />
+                    placeholder="Skriv lagnavn..." className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white mb-3" />
                   
                   <label className="block text-sm font-bold text-yellow-400 mb-2">Velg en 4-sifret PIN-kode:</label>
                   <p className="text-xs text-slate-400 mb-2">Du trenger denne for å kunne endre tipsene dine senere</p>
