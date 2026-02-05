@@ -1258,23 +1258,33 @@ export default function OLTippingApp() {
               <div className="grid md:grid-cols-2 gap-3 text-sm">
                 <div className="bg-blue-900/30 rounded-lg p-3">
                   <p className="font-bold text-blue-300 mb-2">👤 INDIVIDUELLE ØVELSER</p>
-                  <p className="text-blue-100 text-xs mb-2">Du tipper 5 utøvere (1.-5. plass)</p>
-                  <p className="text-slate-300 text-xs mb-1"><span className="text-white font-semibold">Plasseringspoeng:</span></p>
-                  <p className="text-blue-100 text-xs">Topp 5 gir: 5-4-3-2-1 poeng</p>
-                  <p className="text-slate-300 text-xs mt-2 mb-1"><span className="text-yellow-300 font-semibold">🏅 Pallbonus (riktig medalje):</span></p>
-                  <p className="text-yellow-100 text-xs">Riktig gullvinner: +5 poeng</p>
-                  <p className="text-slate-300 text-xs">Riktig sølvvinner: +3 poeng</p>
-                  <p className="text-orange-200 text-xs">Riktig bronjevinner: +1 poeng</p>
-                  <p className="text-slate-400 text-xs mt-2 italic">Pallen er viktigst! Riktig medalje gir bonus.</p>
+                  <p className="text-blue-100 text-xs mb-3">Du tipper 5 utøvere (1.-5. plass)</p>
+                  
+                  <div className="bg-blue-950/50 rounded p-2 mb-2">
+                    <p className="text-white font-semibold text-xs mb-1">📍 Steg 1: Plasseringspoeng</p>
+                    <p className="text-blue-200 text-xs">Havner utøveren din i topp 5? Da får du poeng!</p>
+                    <p className="text-blue-100 text-xs mt-1">🥇5p | 🥈4p | 🥉3p | 4.plass 2p | 5.plass 1p</p>
+                    <p className="text-slate-400 text-xs italic mt-1">Uansett hvilken plass du tippet utøveren på.</p>
+                  </div>
+                  
+                  <div className="bg-yellow-900/30 rounded p-2">
+                    <p className="text-yellow-300 font-semibold text-xs mb-1">🎯 Steg 2: Pallbonus (ekstra!)</p>
+                    <p className="text-yellow-100 text-xs">Tippet du medaljevinner på riktig plass?</p>
+                    <p className="text-yellow-100 text-xs mt-1">Gull riktig: +5p | Sølv riktig: +3p | Bronse riktig: +1p</p>
+                  </div>
+                  
+                  <div className="bg-slate-800/50 rounded p-2 mt-2">
+                    <p className="text-slate-300 text-xs">💡 <span className="font-semibold">Eksempel:</span> Du tipper Klæbo på 1. plass. Han vinner gull → Du får 5p (plasseringspoeng) + 5p (pallbonus) = <span className="text-green-400 font-bold">10 poeng!</span></p>
+                  </div>
                 </div>
                 <div className="bg-green-900/30 rounded-lg p-3">
                   <p className="font-bold text-green-300 mb-2">🏁 LAGØVELSER</p>
-                  <p className="text-green-100 text-xs mb-2">Du tipper 3 nasjoner (gull, sølv, bronsje)</p>
+                  <p className="text-green-100 text-xs mb-3">Du tipper 3 nasjoner (gull, sølv, bronse)</p>
                   <p className="text-slate-300 text-xs mb-1"><span className="text-white font-semibold">Kun poeng for riktig plassering:</span></p>
-                  <p className="text-yellow-100 text-xs">Riktig gullnasjon: 8 poeng</p>
-                  <p className="text-slate-300 text-xs">Riktig sølvnasjon: 5 poeng</p>
-                  <p className="text-orange-200 text-xs">Riktig bronsenasjon: 3 poeng</p>
-                  <p className="text-slate-400 text-xs mt-2 italic">Her må nasjonen stå på riktig plass!</p>
+                  <p className="text-yellow-100 text-xs">🥇 Riktig gullnasjon: 8 poeng</p>
+                  <p className="text-slate-300 text-xs">🥈 Riktig sølvnasjon: 5 poeng</p>
+                  <p className="text-orange-200 text-xs">🥉 Riktig bronsenasjon: 3 poeng</p>
+                  <p className="text-slate-400 text-xs mt-3 italic">⚠️ Her må nasjonen stå på riktig plass for å få poeng!</p>
                 </div>
               </div>
               <div className="bg-red-900/30 rounded-lg p-3 mt-3">
@@ -1321,14 +1331,21 @@ export default function OLTippingApp() {
             </div>
 
             {/* Info om endring av tips */}
-            <div className="bg-blue-900/30 rounded-xl p-4 border border-blue-500/30">
-              <h3 className="font-bold text-blue-400 mb-2 flex items-center gap-2">
-                ✏️ Endre innsendte tips
+            <div className="bg-blue-900/30 rounded-xl p-4 border border-blue-500/50">
+              <h3 className="font-bold text-blue-300 mb-3 flex items-center gap-2 text-lg">
+                ✏️ Nytt i år: Du kan endre tips underveis!
               </h3>
-              <p className="text-sm text-blue-200">
-                Du kan endre tipsene dine frem til kl. 24:00 dagen før øvelsene starter. 
-                Gå til <span className="font-semibold text-white">"Tipping / Endre"</span> og logg inn med navn og PIN-kode.
-              </p>
+              <div className="space-y-2 text-sm text-blue-100">
+                <p>
+                  Du kan endre tipsene dine helt fram til <span className="font-bold text-white">23:59 dagen før øvelsen starter</span>.
+                </p>
+                <p className="bg-blue-950/50 rounded p-2 text-blue-200">
+                  💡 <span className="font-semibold">Eksempel:</span> Starter øvelsen torsdag, kan du endre tips til onsdag kl. 23:59.
+                </p>
+                <p>
+                  Gå til <span className="font-semibold text-white">"Tipping / Endre"</span> og logg inn med lagnavn og PIN-kode.
+                </p>
+              </div>
             </div>
 
             <button onClick={() => setView('tipping')}
