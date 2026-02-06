@@ -2001,17 +2001,39 @@ export default function OLTippingApp() {
             {synligeDager[tipsDag] ? (
               <div className="space-y-4">
                 {øvelserPerDag[tipsDag]?.map(ø => {
-                  // Beregn statistikk
+                  // Beregn statistikk med fuzzy matching for å gruppere lignende navn
                   const teller = {};
+                  const navnMapping = {}; // Map fra originalnavn til kanonisk navn
+                  
                   alleTips.forEach(d => {
                     d.tips[ø.idx]?.forEach((navn, pos) => {
                       if (navn && navn.trim()) {
-                        if (!teller[navn]) teller[navn] = { total: 0, posisjoner: {} };
-                        teller[navn].total++;
-                        teller[navn].posisjoner[pos + 1] = (teller[navn].posisjoner[pos + 1] || 0) + 1;
+                        // Finn om dette navnet matcher et eksisterende navn i teller
+                        let kanoniskNavn = navn;
+                        let funnetMatch = false;
+                        
+                        for (const eksisterendeNavn of Object.keys(teller)) {
+                          const { match } = fuzzyMatch(navn, eksisterendeNavn);
+                          if (match) {
+                            kanoniskNavn = eksisterendeNavn;
+                            funnetMatch = true;
+                            break;
+                          }
+                        }
+                        
+                        if (!funnetMatch) {
+                          teller[navn] = { total: 0, posisjoner: {}, varianter: [] };
+                        }
+                        
+                        teller[kanoniskNavn].total++;
+                        teller[kanoniskNavn].posisjoner[pos + 1] = (teller[kanoniskNavn].posisjoner[pos + 1] || 0) + 1;
+                        if (!teller[kanoniskNavn].varianter.includes(navn)) {
+                          teller[kanoniskNavn].varianter.push(navn);
+                        }
                       }
                     });
                   });
+                  
                   const stats = Object.entries(teller)
                     .map(([navn, data]) => ({ navn, ...data }))
                     .sort((a, b) => b.total - a.total);
