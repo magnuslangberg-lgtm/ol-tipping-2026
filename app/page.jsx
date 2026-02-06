@@ -1249,7 +1249,7 @@ export default function OLTippingApp() {
           {[
             { id: 'info', label: 'Info', icon: AlertCircle },
             { id: 'tipping', label: 'Tipping / Endre', icon: Send },
-            { id: 'tips', label: 'Alle tips', icon: Users },
+            { id: 'tips', label: 'Tips dag for dag', icon: Users },
             { id: 'leaderboard', label: 'Resultater', icon: Trophy },
             { id: 'admin', label: 'Admin', icon: Lock },
           ].map(({ id, label, icon: Icon }) => (
@@ -1525,12 +1525,12 @@ export default function OLTippingApp() {
                     🔍 Startlister (olympics.com)
                   </a>
                   <a 
-                    href="https://www.oddspodden.com/news/vinter-ol-olympiske-vinterleker/"
+                    href="https://www.norsk-tipping.no/sport/oddsen"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 text-center py-2 px-4 bg-yellow-900/30 hover:bg-yellow-900/50 border border-yellow-600/30 rounded-lg text-yellow-300 text-sm"
                   >
-                    📊 OL-odds (Oddspodden)
+                    📊 OL-odds (Norsk Tipping)
                   </a>
                 </div>
 
@@ -1799,12 +1799,12 @@ export default function OLTippingApp() {
                     🔍 Startlister (olympics.com)
                   </a>
                   <a 
-                    href="https://www.oddspodden.com/news/vinter-ol-olympiske-vinterleker/"
+                    href="https://www.norsk-tipping.no/sport/oddsen"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex-1 text-center py-2 px-4 bg-yellow-900/30 hover:bg-yellow-900/50 border border-yellow-600/30 rounded-lg text-yellow-300 text-sm"
                   >
-                    📊 OL-odds (Oddspodden)
+                    📊 OL-odds (Norsk Tipping)
                   </a>
                 </div>
 
