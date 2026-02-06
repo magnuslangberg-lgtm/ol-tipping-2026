@@ -1514,6 +1514,26 @@ export default function OLTippingApp() {
                   </div>
                 </div>
 
+                {/* Link til startlister og odds */}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <a 
+                    href="https://www.olympics.com/en/milano-cortina-2026/schedule"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 text-center py-2 px-4 bg-cyan-900/30 hover:bg-cyan-900/50 border border-cyan-600/30 rounded-lg text-cyan-300 text-sm"
+                  >
+                    🔍 Startlister (olympics.com)
+                  </a>
+                  <a 
+                    href="https://www.oddspodden.com/news/vinter-ol-olympiske-vinterleker/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 text-center py-2 px-4 bg-yellow-900/30 hover:bg-yellow-900/50 border border-yellow-600/30 rounded-lg text-yellow-300 text-sm"
+                  >
+                    📊 OL-odds (Oddspodden)
+                  </a>
+                </div>
+
                 {/* Øvelser for redigering */}
                 <div className="space-y-2">
                   {Object.entries(øvelserPerDag).map(([dag, øvelser]) => {
@@ -1582,6 +1602,13 @@ export default function OLTippingApp() {
                     <label className="block text-sm font-bold text-red-300 mb-2">🇳🇴 Hvor mange gull tar Norge totalt?</label>
                     <input type="number" min="0" max="50" value={gullTips} onChange={(e) => setGullTips(e.target.value)}
                       placeholder="Antall gull..." className="w-24 px-3 py-2 bg-slate-900 border border-red-600/50 rounded-lg text-white text-center font-bold text-lg" />
+                  </div>
+                )}
+                {gullTipsSynlig && (
+                  <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-600">
+                    <p className="text-slate-400 text-sm flex items-center gap-2">
+                      <Lock className="w-4 h-4" /> 🇳🇴 Norske gull-tips er låst
+                    </p>
                   </div>
                 )}
 
@@ -1833,13 +1860,22 @@ export default function OLTippingApp() {
                   ))}
                 </div>
 
-                {/* Norske gull - NEDERST */}
-                <div className="bg-gradient-to-r from-red-900/50 to-red-800/50 rounded-xl p-4 border border-red-600/30">
-                  <label className="block text-sm font-bold text-red-300 mb-2">🇳🇴 Hvor mange gull tar Norge totalt?</label>
-                  <p className="text-xs text-red-200 mb-2">Eksakt: 30p | Bommer med 1: 20p | Bommer med 2: 10p</p>
-                  <input type="number" min="0" max="50" value={gullTips} onChange={(e) => setGullTips(e.target.value)}
-                    placeholder="Antall gull..." className="w-24 px-3 py-2 bg-slate-900 border border-red-600/50 rounded-lg text-white text-center font-bold text-lg" />
-                </div>
+                {/* Norske gull - NEDERST (skjules hvis allerede synlig/låst) */}
+                {!gullTipsSynlig && (
+                  <div className="bg-gradient-to-r from-red-900/50 to-red-800/50 rounded-xl p-4 border border-red-600/30">
+                    <label className="block text-sm font-bold text-red-300 mb-2">🇳🇴 Hvor mange gull tar Norge totalt?</label>
+                    <p className="text-xs text-red-200 mb-2">Eksakt: 30p | Bommer med 1: 20p | Bommer med 2: 10p</p>
+                    <input type="number" min="0" max="50" value={gullTips} onChange={(e) => setGullTips(e.target.value)}
+                      placeholder="Antall gull..." className="w-24 px-3 py-2 bg-slate-900 border border-red-600/50 rounded-lg text-white text-center font-bold text-lg" />
+                  </div>
+                )}
+                {gullTipsSynlig && (
+                  <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-600">
+                    <p className="text-slate-400 text-sm flex items-center gap-2">
+                      <Lock className="w-4 h-4" /> 🇳🇴 Norske gull-tips er låst
+                    </p>
+                  </div>
+                )}
 
                 {/* Send inn eller eksporter */}
                 <div className="sticky bottom-4 space-y-2">
