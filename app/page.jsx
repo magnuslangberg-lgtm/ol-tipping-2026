@@ -1139,16 +1139,34 @@ export default function OLTippingApp() {
   const beregnØvelsePoeng = (deltaker, øvelseIdx) => {
     const ø = OL_PROGRAM[øvelseIdx];
     const res = resultater[øvelseIdx];
-    if (!res || !deltaker.tips[øvelseIdx]) return { poeng: 0, detaljer: [] };
+    const tips = deltaker.tips?.[øvelseIdx];
+    
+    // Hvis ingen tips, returner tom
+    if (!tips || tips.length === 0) return { poeng: 0, detaljer: [] };
     
     let poeng = 0;
     const detaljer = [];
     
-    deltaker.tips[øvelseIdx].forEach((tip, tippPos) => {
+    tips.forEach((tip, tippPos) => {
       if (!tip?.trim()) {
-        detaljer.push({ tip: '-', tippPos: tippPos + 1, faktiskPos: null, poeng: 0 });
+        detaljer.push({ tip: '-', tippPos: tippPos + 1, faktiskPos: null, poeng: 0, bonus: 0, totalPoeng: 0 });
         return;
       }
+      
+      // Hvis ingen resultater ennå, vis bare tipsene
+      if (!res || !res.some(r => r?.trim())) {
+        detaljer.push({ 
+          tip, 
+          tippPos: tippPos + 1, 
+          faktiskPos: null,
+          matchedName: null,
+          poeng: 0,
+          bonus: 0,
+          totalPoeng: 0
+        });
+        return;
+      }
+      
       const { index: faktiskPos, name: matchedName } = findBestMatch(tip, res);
       let øvelsePoeng = 0;
       let bonus = 0;
@@ -1957,7 +1975,146 @@ export default function OLTippingApp() {
               </div>
             )}
 
-            {/* Gull-tips seksjon */}
+            {/* Dag-velger */}
+            <div className="flex gap-1 overflow-x-auto pb-2">
+              {Array.from({ length: 16 }, (_, i) => i + 1).map(dag => (
+                <button
+                  key={dag}
+                  onClick={() => setTipsDag(dag)}
+                  className={`px-3 py-2 rounded-lg font-semibold whitespace-nowrap flex items-center gap-1 text-sm ${
+                    tipsDag === dag 
+                      ? 'bg-cyan-600 text-white' 
+                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                  }`}
+                >
+                  Dag {dag}
+                  {synligeDager[dag] ? (
+                    <Eye className="w-3 h-3 text-green-400" />
+                  ) : (
+                    <EyeOff className="w-3 h-3 text-slate-500" />
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Øvelser for valgt dag */}
+            {synligeDager[tipsDag] ? (
+              <div className="space-y-4">
+                {øvelserPerDag[tipsDag]?.map(ø => {
+                  // Beregn statistikk
+                  const teller = {};
+                  alleTips.forEach(d => {
+                    d.tips[ø.idx]?.forEach((navn, pos) => {
+                      if (navn && navn.trim()) {
+                        if (!teller[navn]) teller[navn] = { total: 0, posisjoner: {} };
+                        teller[navn].total++;
+                        teller[navn].posisjoner[pos + 1] = (teller[navn].posisjoner[pos + 1] || 0) + 1;
+                      }
+                    });
+                  });
+                  const stats = Object.entries(teller)
+                    .map(([navn, data]) => ({ navn, ...data }))
+                    .sort((a, b) => b.total - a.total);
+                  const maxTips = stats[0]?.total || 1;
+                  
+                  return (
+                    <div key={ø.idx} className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+                      <div className="flex items-start justify-between mb-3">
+                        <div>
+                          <h3 className="font-bold text-white text-lg">{ø.øvelse}</h3>
+                          <p className="text-xs text-slate-400">
+                            {ø.type === 'individuell' ? '5 plasser' : '3 plasser'} • {alleTips.length} deltakere
+                          </p>
+                        </div>
+                        <span className={`px-2 py-1 rounded text-xs font-bold ${SPORT_COLORS[ø.sport]?.bg} text-white`}>
+                          {ø.sport.toUpperCase()}
+                        </span>
+                      </div>
+                      
+                      {/* Mest tippede - forbedret visning */}
+                      {stats.length > 0 && (
+                        <div className="mb-4">
+                          <p className="text-sm text-cyan-400 font-bold mb-3 flex items-center gap-2">
+                            📊 Mest tippet:
+                          </p>
+                          <div className="space-y-2">
+                            {stats.slice(0, 5).map(({ navn, total, posisjoner }, idx) => {
+                              const prosent = Math.round((total / alleTips.length) * 100);
+                              const medaljer = ['🥇', '🥈', '🥉'];
+                              const posStr = Object.entries(posisjoner)
+                                .sort((a, b) => b[1] - a[1])
+                                .map(([pos, ant]) => `${ant}x på ${pos}.`)
+                                .join(', ');
+                              
+                              return (
+                                <div key={navn} className="relative">
+                                  {/* Bakgrunnsbar */}
+                                  <div 
+                                    className="absolute inset-0 rounded-lg bg-gradient-to-r from-cyan-600/40 to-cyan-600/10"
+                                    style={{ width: `${(total / maxTips) * 100}%` }}
+                                  />
+                                  {/* Innhold */}
+                                  <div className="relative flex items-center justify-between p-3 rounded-lg border border-cyan-600/30">
+                                    <div className="flex items-center gap-3">
+                                      <span className="text-lg">{idx < 3 ? medaljer[idx] : `#${idx + 1}`}</span>
+                                      <div>
+                                        <span className="font-bold text-white">{navn}</span>
+                                        <p className="text-xs text-slate-400">{posStr}</p>
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <span className="text-cyan-300 font-bold">{total}x</span>
+                                      <span className="text-slate-400 text-sm ml-1">({prosent}%)</span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Alle deltakeres tips */}
+                      <details className="group">
+                        <summary className="cursor-pointer text-sm text-slate-400 hover:text-white flex items-center gap-1">
+                          <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform" />
+                          Se alle tips ({alleTips.length} deltakere)
+                        </summary>
+                        <div className="mt-3 space-y-2">
+                          {alleTips.map(d => (
+                            <div key={d.id} className="flex items-center gap-3 p-2 bg-slate-900/50 rounded">
+                              <span className="text-white font-semibold w-24 truncate">{d.navn}</span>
+                              <div className="flex gap-1 flex-wrap flex-1">
+                                {d.tips[ø.idx]?.map((tip, i) => (
+                                  <span key={i} className={`px-2 py-0.5 rounded text-xs ${
+                                    i === 0 ? 'bg-yellow-600/30 text-yellow-300' :
+                                    i === 1 ? 'bg-slate-500/30 text-slate-300' :
+                                    i === 2 ? 'bg-orange-600/30 text-orange-300' :
+                                    'bg-slate-700/50 text-slate-400'
+                                  }`}>
+                                    {i + 1}. {tip || '-'}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </details>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="bg-slate-800/30 rounded-xl p-8 text-center border border-slate-700">
+                <EyeOff className="w-16 h-16 mx-auto mb-3 text-slate-600" />
+                <h3 className="text-white font-bold mb-2">Dag {tipsDag} er ikke åpnet ennå</h3>
+                <p className="text-slate-400 text-sm">
+                  Tips for denne dagen vises når admin åpner dem
+                </p>
+              </div>
+            )}
+
+            {/* Gull-tips seksjon - NEDERST */}
             <div className={`rounded-xl p-4 border ${
               gullTipsSynlig 
                 ? 'bg-yellow-900/30 border-yellow-500/50' 
@@ -2017,114 +2174,6 @@ export default function OLTippingApp() {
                 </div>
               )}
             </div>
-
-            {/* Dag-velger */}
-            <div className="flex gap-1 overflow-x-auto pb-2">
-              {Array.from({ length: 16 }, (_, i) => i + 1).map(dag => (
-                <button
-                  key={dag}
-                  onClick={() => setTipsDag(dag)}
-                  className={`px-3 py-2 rounded-lg font-semibold whitespace-nowrap flex items-center gap-1 text-sm ${
-                    tipsDag === dag 
-                      ? 'bg-cyan-600 text-white' 
-                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                  }`}
-                >
-                  Dag {dag}
-                  {synligeDager[dag] ? (
-                    <Eye className="w-3 h-3 text-green-400" />
-                  ) : (
-                    <EyeOff className="w-3 h-3 text-slate-500" />
-                  )}
-                </button>
-              ))}
-            </div>
-
-            {/* Øvelser for valgt dag */}
-            {synligeDager[tipsDag] ? (
-              <div className="space-y-4">
-                {øvelserPerDag[tipsDag]?.map(ø => {
-                  // Beregn statistikk
-                  const teller = {};
-                  alleTips.forEach(d => {
-                    d.tips[ø.idx]?.forEach((navn, pos) => {
-                      if (navn && navn.trim()) {
-                        if (!teller[navn]) teller[navn] = { total: 0, posisjoner: {} };
-                        teller[navn].total++;
-                        teller[navn].posisjoner[pos + 1] = (teller[navn].posisjoner[pos + 1] || 0) + 1;
-                      }
-                    });
-                  });
-                  const stats = Object.entries(teller)
-                    .map(([navn, data]) => ({ navn, ...data }))
-                    .sort((a, b) => b.total - a.total);
-                  
-                  return (
-                    <div key={ø.idx} className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
-                      <h3 className="font-bold text-white mb-1">{ø.øvelse}</h3>
-                      <p className="text-xs text-slate-400 mb-3">
-                        {ø.type === 'individuell' ? '5 plasser' : '3 plasser'} • {alleTips.length} deltakere
-                      </p>
-                      
-                      {/* Mest tippede */}
-                      {stats.length > 0 && (
-                        <div className="mb-4">
-                          <p className="text-xs text-cyan-400 font-semibold mb-2">📈 Mest tippet:</p>
-                          <div className="flex flex-wrap gap-2">
-                            {stats.slice(0, 5).map(({ navn, total, posisjoner }) => (
-                              <div key={navn} className="bg-cyan-900/30 border border-cyan-600/30 rounded-lg px-3 py-2">
-                                <div className="font-semibold text-white text-sm">{navn}</div>
-                                <div className="text-xs text-cyan-300">
-                                  {total}x tippet
-                                  <span className="text-slate-400 ml-1">
-                                    ({Object.entries(posisjoner).map(([pos, ant]) => `${ant}x på ${pos}.`).join(', ')})
-                                  </span>
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Alle deltakeres tips */}
-                      <details className="group">
-                        <summary className="cursor-pointer text-sm text-slate-400 hover:text-white flex items-center gap-1">
-                          <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform" />
-                          Se alle tips ({alleTips.length} deltakere)
-                        </summary>
-                        <div className="mt-3 space-y-2">
-                          {alleTips.map(d => (
-                            <div key={d.id} className="flex items-center gap-3 p-2 bg-slate-900/50 rounded">
-                              <span className="text-white font-semibold w-24 truncate">{d.navn}</span>
-                              <div className="flex gap-1 flex-wrap flex-1">
-                                {d.tips[ø.idx]?.map((tip, i) => (
-                                  <span key={i} className={`px-2 py-0.5 rounded text-xs ${
-                                    i === 0 ? 'bg-yellow-600/30 text-yellow-300' :
-                                    i === 1 ? 'bg-slate-500/30 text-slate-300' :
-                                    i === 2 ? 'bg-orange-600/30 text-orange-300' :
-                                    'bg-slate-700/50 text-slate-400'
-                                  }`}>
-                                    {i + 1}. {tip || '-'}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </details>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="bg-slate-800/30 rounded-xl p-8 text-center border border-slate-700">
-                <EyeOff className="w-16 h-16 mx-auto mb-3 text-slate-600" />
-                <h3 className="text-white font-bold mb-2">Dag {tipsDag} er ikke åpnet ennå</h3>
-                <p className="text-slate-400 text-sm">
-                  Tips for denne dagen vises når admin åpner dem
-                </p>
-              </div>
-            )}
           </div>
         )}
 
