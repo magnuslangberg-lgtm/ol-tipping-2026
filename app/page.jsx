@@ -411,71 +411,105 @@ const UTØVERE = {
     // Norge - menn
     "Johannes Høsflot Klæbo", "Pål Golberg", "Hans Christer Holund", "Simen Hegstad Krüger",
     "Martin Løwstrøm Nyenget", "Harald Østberg Amundsen", "Even Northug", "Didrik Tønseth",
-    "Erik Valnes", "Johan-Olav Botn", "Ansgar Evensen", "Martin Kirkeberg Mørk", "Einar Hedegart",
-    "Jan Thomas Jenssen", "Mattis Stenshagen", "Iver Tildheim Andersen",
+    "Erik Valnes", "Ansgar Evensen", "Martin Kirkeberg Mørk", "Einar Hedegart",
+    "Jan Thomas Jenssen", "Mattis Stenshagen", "Iver Tildheim Andersen", "Lars Heggen",
+    "Oskar Opstad Vike", "Andreas Fjorden Ree", "Thomas Helland Larsen", "Vemund Ravnsborg Gurigard",
     // Norge - kvinner
     "Therese Johaug", "Heidi Weng", "Ingvild Flugstad Østberg", "Tiril Udnes Weng",
     "Anne Kjersti Kalvå", "Astrid Øyre Slind", "Helene Marie Fossesholm", "Mathilde Myhrvold",
     "Kristine Stavås Skistad", "Lotta Udnes Weng", "Silje Theodorsen", "Karoline Simpson-Larsen",
+    "Milla Grosberghaugen Andreassen", "Nora Sanness",
     // Sverige
     "Frida Karlsson", "Ebba Andersson", "Jonna Sundling", "Maja Dahlqvist", "Linn Svahn",
     "Calle Halfvarsson", "William Poromaa", "Edvin Anger", "Moa Ilar", "Emma Ribom",
-    "Jens Burman", "Gustaf Berglund",
+    "Jens Burman", "Gustaf Berglund", "Johanna Hagström", "Johan Häggström", "Emil Danielsson",
     // Finland
     "Iivo Niskanen", "Kerttu Niskanen", "Krista Pärmäkoski", "Jasmi Joensuu", "Arsi Ruuskanen",
+    "Johanna Matintalo", "Ristomatti Hakola", "Lauri Vuorinen",
     // USA
-    "Jessie Diggins", "Gus Schumacher", "Rosie Brennan", "Julia Kern",
+    "Jessie Diggins", "Gus Schumacher", "Rosie Brennan", "Julia Kern", "Ben Ogden",
     // Italia
-    "Federico Pellegrino", "Francesco De Fabiani", "Simone Mocellini",
+    "Federico Pellegrino", "Francesco De Fabiani", "Simone Mocellini", "Elia Barp", "Paolo Ventura",
+    // Frankrike
+    "Renaud Jay", "Hugo Lapalus", "Lucas Chanavat", "Delphine Claudel", "Richard Jouve",
+    // Sveits
+    "Nadine Fähndrich", "Alina Meier", "Anja Weber", "Théo Schely", "Valerio Grond",
+    // Tyskland
+    "Victoria Carl", "Katharina Hennig", "Coletta Rydzek", "Friedrich Moch", "Albert Kuchler",
+    // Østerrike
+    "Teresa Stadlober", "Mika Vermeulen", "Michael Föttinger",
     // Andre
     "Alexander Bolshunov", "Natalia Nepryaeva", "Veronika Stepanova",
-    "Nadine Fähndrich", "Victoria Carl", "Katharina Hennig", "Coletta Rydzek",
-    "Yuto Miyamura", "Ge Chunyu", "Ryoma Kimata", "Kira Kimura", "Theo Schely", "Florian Notz",
-    "Renaud Jay", "Hugo Lapalus", "Lucas Chanavat", "Delphine Claudel",
+    "Yuto Miyazawa", "Ge Chunyu", "Ryoma Kimata", "Kira Kimura",
+    "Alison Mackie", "Iris De Martin Pinter", "Leonie Perry",
+    "Savelii Korostelev", "Martino Carollo", "Jiri Tuz",
   ],
   skiskyting: [
     // Norge - menn
     "Johannes Thingnes Bø", "Tarjei Bø", "Sturla Holm Lægreid", "Vetle Sjåstad Christiansen",
-    "Filip Fjeld Andersen", "Endre Strømsheim", "Sivert Guttorm Bakken",
+    "Filip Fjeld Andersen", "Endre Strømsheim", "Sivert Guttorm Bakken", "Johan-Olav Botn",
+    "Martin Uldal", "Isak Frey", "Sverre Dahlen Aspenes", "Martin Nevland", "Vetle Paulsen",
     // Norge - kvinner
     "Ingrid Landmark Tandrevold", "Tiril Eckhoff", "Marte Olsbu Røiseland", "Karoline Knotten",
-    "Juni Arnekleiv", "Ida Lien", "Maren Kirkeeide", "Karoline Simpson-Larsen", "Ragnhild Femsteinevik",
+    "Juni Arnekleiv", "Ida Lien", "Maren Kirkeeide", "Ragnhild Femsteinevik",
     // Frankrike
     "Quentin Fillon Maillet", "Emilien Jacquelin", "Fabien Claude", "Éric Perrot",
+    "Oscar Lombardot", "Emilien Claude", "Antonin Guigonnat",
     "Julia Simon", "Lou Jeanmonnot", "Justine Braisaz-Bouchet", "Sophie Chauveau",
     // Sverige
-    "Sebastian Samuelsson", "Martin Ponsiluoma", "Martin Nordqvist", "Viktor Brandt",
+    "Sebastian Samuelsson", "Martin Ponsiluoma", "Viktor Brandt", "Jesper Nelin", "Malte Stefansson",
     "Hanna Öberg", "Elvira Öberg", "Anna Magnusson", "Ella Halvarsson",
     // Tyskland
     "Benedikt Doll", "Philipp Nawrath", "Philipp Horn", "Justus Strelow", "Johannes Kühn",
+    "Roman Rees", "David Zobel", "Lucas Fratzscher", "Danilo Riethmueller", "Simon Kaiser",
     "Franziska Preuss", "Vanessa Voigt", "Selina Grotian", "Sophia Schneider", "Janina Hettich-Walz",
     // Italia
-    "Tommaso Giacomel", "Lukas Hofer", "Didier Bionaz",
+    "Tommaso Giacomel", "Lukas Hofer", "Didier Bionaz", "Patrick Braunhofer", "Nicola Romanin", "Elia Zeni",
     "Dorothea Wierer", "Lisa Vittozzi", "Hannah Auchentaller", "Samuela Comola",
+    // USA
+    "Campbell Wright", "Maxime Germain", "Sean Doherty", "Paul Schommer",
+    // Sveits
+    "Joscha Burkhalter", "Sebastian Stalder", "Niklas Hartweg",
+    // Finland
+    "Tero Seppälä", "Olli Hiidensalo", "Tuomas Harjula", "Otto Invenius", "Arttu Heikkinen",
+    // Østerrike
+    "Simon Eder", "Patrick Jakob", "Dominic Unterweger", "Lisa Theresa Hauser", "Anna Gandler",
+    // Tsjekkia
+    "Vitezslav Hornig", "Michal Krčmář", "Marketa Davidova", "Jessica Jislová",
     // Andre
-    "Jakov Fak", "Miha Dovžan", "Endre Ståhl",
-    "Suvi Minkkinen", "Marketa Davidova", "Paulina Fialkova", "Daria Domracheva",
-    "Dmytro Pidruchnyi", "Artem Pryma", "Johan-Olav Botn", "Campbell Wright",
+    "Jakov Fak", "Miha Dovžan", "Anton Vidmar", "Lovro Planko",
+    "Vytautas Strolia", "Dmytro Pidruchnyi", "Vitalii Mandzyn",
+    "Jan Gunka", "Konrad Badacz", "Renars Birkentals", "Andrejs Rastorgujevs",
+    "Paulina Fialkova", "Suvi Minkkinen", "Karoline Simpson-Larsen",
   ],
   hopp: [
-    // Norge
+    // Norge - menn
     "Halvor Egner Granerud", "Johann André Forfang", "Marius Lindvik", "Daniel-André Tande",
     "Robert Johansson", "Kristoffer Eriksen Sundal", "Benjamin Østvold", "Anders Fannemel",
+    // Norge - kvinner
     "Silje Opseth", "Eirin Maria Kvandal", "Anna Odine Strøm", "Thea Minyan Bjørseth",
     // Østerrike
     "Stefan Kraft", "Jan Hörl", "Daniel Tschofenig", "Michael Hayböck", "Manuel Fettner",
+    "Stefan Babinsky", "Maximilian Ortner", "Felix Trunz",
     "Eva Pinkelnig", "Lisa Eder", "Jacqueline Seifriedsberger",
     // Tyskland
     "Andreas Wellinger", "Pius Paschke", "Karl Geiger", "Stephan Leyhe", "Markus Eisenbichler",
+    "Philipp Raimund", "Felix Hoffmann",
     "Katharina Althaus", "Selina Freitag", "Juliane Seyfarth", "Agnes Reisch",
     // Slovenia
-    "Anže Lanišek", "Timi Zajc", "Domen Prevc", "Peter Prevc", "Žiga Jelar",
+    "Anže Lanišek", "Timi Zajc", "Domen Prevc", "Peter Prevc", "Žiga Jelar", "Lovro Kos",
     "Nika Prevc", "Ema Klinec", "Urša Bogataj",
     // Japan
-    "Ryoyu Kobayashi", "Naoki Nakamura", "Junshiro Kobayashi",
+    "Ryoyu Kobayashi", "Naoki Nakamura", "Junshiro Kobayashi", "Ren Nikaido", "Keiichi Sato",
     "Nozomi Maruyama", "Sara Takanashi", "Yuki Ito",
+    // Sveits
+    "Gregor Deschwanden", "Killian Peier", "Simon Ammann",
+    // Polen
+    "Kamil Stoch", "Dawid Kubacki", "Piotr Żyła", "Aleksander Zniszczoł", "Paweł Wąsek",
+    // Kina
+    "Zeng Ping",
     // Andre
-    "Kamil Stoch", "Dawid Kubacki", "Piotr Żyła", "Gregor Deschwanden", "Killian Peier",
+    "Johann Pedersen", "Tate Frantz", "Artti Aigro",
   ],
   alpint: [
     // Norge
@@ -484,30 +518,34 @@ const UTØVERE = {
     "Ragnhild Mowinckel", "Kajsa Vickhoff Lie", "Mina Fürst Holtmann", "Thea Louise Stjernesund",
     // Sveits
     "Marco Odermatt", "Loïc Meillard", "Daniel Yule", "Franjo von Allmen", "Thomas Tumler",
+    "Justin Murisier", "Stefan Rogentin", "Alexis Monney", "Gino Caviezel",
     "Lara Gut-Behrami", "Michelle Gisin", "Wendy Holdener", "Corinne Suter", "Camille Rast",
-    "Joana Hählen", "Priska Ming-Nufer",
+    "Joana Hählen", "Priska Ming-Nufer", "Simone Wild",
     // Østerrike
     "Manuel Feller", "Marco Schwarz", "Vincent Kriechmayr", "Raphael Haaser", "Stefan Babinsky",
+    "Lukas Feurstein", "Johannes Strolz", "Patrick Feurstein",
     "Cornelia Hütter", "Katharina Liensberger", "Julia Scheib", "Nina Ortlieb", "Christina Ager",
-    "Katharina Truppe", "Ricarda Haaser",
+    "Katharina Truppe", "Ricarda Haaser", "Mirjam Puchner", "Stephanie Venier",
     // Frankrike
-    "Clément Noël", "Alexis Pinturault", "Cyprien Sarrazin", "Nils Allegre",
+    "Clément Noël", "Alexis Pinturault", "Cyprien Sarrazin", "Nils Allegre", "Paco Rassat",
     "Tessa Worley", "Romane Miradoli", "Clara Direz",
     // Italia
     "Sofia Goggia", "Federica Brignone", "Marta Bassino", "Dominik Paris", "Giovanni Franzoni",
-    "Nicol Delago", "Roberta Melesi", "Elena Curtoni", "Laura Pirovano",
+    "Nicol Delago", "Roberta Melesi", "Elena Curtoni", "Laura Pirovano", "Alex Vinatzer",
     // Tyskland
     "Linus Strasser", "Alexander Schmid", "Jonas Stockinger",
     "Kira Weidle-Winkelmann", "Emma Aicher", "Lena Dürr",
     // USA
-    "Mikaela Shiffrin", "Lindsey Vonn", "Breezy Johnson", "Lauren Macuga",
-    "Ryan Cochran-Siegle", "River Radamus", "Tommy Ford",
+    "Mikaela Shiffrin", "Lindsey Vonn", "Breezy Johnson", "Lauren Macuga", "Paula Moltzan",
+    "Ryan Cochran-Siegle", "River Radamus", "Tommy Ford", "Luke Winters",
     // Kroatia
     "Zrinka Ljutic", "Leona Popovic", "Filip Zubcic", "Samuel Kolega",
+    // Sverige
+    "Sara Hector", "Anna Swenn-Larsson", "Hanna Aronsson Elfman",
     // Andre
-    "Sara Hector", "Petra Vlhová", "Lara Colturi", "Maryna Gasienica-Daniel",
-    "Marcel Hirscher", "Ramon Zenhäusern", "Justin Murisier",
-    "Albert Popov", "Tormis Laine",
+    "Petra Vlhová", "Lara Colturi", "Maryna Gasienica-Daniel", "Alice Robinson",
+    "Marcel Hirscher", "Ramon Zenhäusern", "Eduard Hallberg",
+    "Albert Popov", "Tormis Laine", "Ester Ledecká",
   ],
   kombinert: [
     // Norge
@@ -525,20 +563,25 @@ const UTØVERE = {
     // Norge
     "Hallgeir Engebråten", "Sverre Lunde Pedersen", "Peder Kongshaug", "Allan Dahl Johansson",
     "Ragne Wiklund", "Sofie Karoline Haugen", "Ida Njåtun", "Julie Nistad Samsonsen",
-    "Sander Eitrem",
+    "Sander Eitrem", "Bjørn Magnussen", "Henrik Fagerli Rukke",
     // Nederland
     "Patrick Roest", "Jorrit Bergsma", "Kjeld Nuis", "Thomas Krol", "Tim Prins",
     "Irene Schouten", "Antoinette de Jong", "Antoinette Rijpma-de Jong", "Jutta Leerdam", "Joy Beune",
-    "Femke Kok", "Jenning de Boo",
+    "Femke Kok", "Jenning de Boo", "Marijke Groenewoud", "Merijn Scheperkamp",
     // USA
-    "Jordan Stolz", "Erin Jackson", "Brittany Bowe",
+    "Jordan Stolz", "Erin Jackson", "Brittany Bowe", "Kimi Goetz",
     // Japan/Asia
-    "Nao Kodaira", "Miho Takagi", "Ning Zhongyan", "Gao Tingyu",
+    "Nao Kodaira", "Miho Takagi", "Nana Takagi", "Ning Zhongyan", "Gao Tingyu",
     // Italia
-    "Davide Ghiotto", "Andrea Giovannini", "Michele Malfatti",
+    "Davide Ghiotto", "Andrea Giovannini", "Michele Malfatti", "Francesca Lollobrigida",
+    // Tsjekkia
+    "Martina Sáblíková", "Metoděj Jílek",
+    // Canada
+    "Laurent Dubreuil", "Connor Howe", "Graeme Fish",
+    // Belgia
+    "Bart Swings",
     // Andre
-    "Laurent Dubreuil", "Bart Swings", "Martina Sáblíková",
-    "Metoděj Jílek", "Timothy Loubineaud",
+    "Timothy Loubineaud", "Zhongyan Ning", "Min Sun Kim",
   ],
   freeski: [
     // Norge
@@ -552,15 +595,26 @@ const UTØVERE = {
   ],
   snowboard: [
     // Norge
-    "Marcus Kleveland", "Mons Røisland", "Fridtjof Sæther Tischendorf",
+    "Marcus Kleveland", "Mons Røisland", "Fridtjof Sæther Tischendorf", "Markus Olimstad",
     // Canada
     "Max Parrot", "Mark McMorris", "Darcy Sharpe", "Laurie Blouin",
-    // Asia
-    "Su Yiming", "Takeru Otsuka", "Ge Chunyu", "Yuto Miyamura", "Kira Kimura", "Ryoma Kimata",
-    "Yuto Totsuka", "Ayumu Hirano", "Ruka Hirano",
+    // Japan
+    "Su Yiming", "Takeru Otsuka", "Yuto Totsuka", "Ayumu Hirano", "Ruka Hirano",
+    "Yuto Miyamura", "Ryoma Kimata", "Kokomo Murase", "Mitsuki Ono",
+    // Kina
+    "Ge Chunyu", "Kira Kimura",
+    // USA
+    "Red Gerard", "Dusty Henricksen", "Sean FitzSimons", "Chris Corning", "Julia Marino",
+    // Finland
+    "Rene Rinnekangas", "Enni Rukajärvi",
+    // Østerrike
+    "Anna Gasser",
+    // New Zealand
+    "Zoi Sadowski-Synnott", "Tiarn Collins",
+    // Australia
+    "Tess Coady", "Valentino Guseli",
     // Andre
-    "Rene Rinnekangas", "Red Gerard", "Dusty Henricksen",
-    "Anna Gasser", "Zoi Sadowski-Synnott", "Kokomo Murase", "Tess Coady",
+    "Sven Thorgren", "Nicola Liviero", "Jonas Boesiger",
   ],
   curling: [
     "Norge", "Sverige", "Sveits", "Canada", "Storbritannia", "USA", "Italia",
@@ -1705,6 +1759,26 @@ export default function OLTippingApp() {
                     maxLength={4}
                     className="w-32 px-3 py-2 bg-slate-900 border border-yellow-600/50 rounded-lg text-white text-center font-bold text-lg" 
                   />
+                </div>
+
+                {/* Link til startlister og odds */}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <a 
+                    href="https://www.olympics.com/en/milano-cortina-2026/schedule"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 text-center py-2 px-4 bg-cyan-900/30 hover:bg-cyan-900/50 border border-cyan-600/30 rounded-lg text-cyan-300 text-sm"
+                  >
+                    🔍 Startlister (olympics.com)
+                  </a>
+                  <a 
+                    href="https://www.oddspodden.com/news/vinter-ol-olympiske-vinterleker/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex-1 text-center py-2 px-4 bg-yellow-900/30 hover:bg-yellow-900/50 border border-yellow-600/30 rounded-lg text-yellow-300 text-sm"
+                  >
+                    📊 OL-odds (Oddspodden)
+                  </a>
                 </div>
 
                 {/* Øvelser */}
