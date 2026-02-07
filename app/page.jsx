@@ -3057,7 +3057,6 @@ export default function OLTippingApp() {
                     </div>
                   )}
                 </div>
-                </div>
 
                 {/* Valgt deltaker */}
                 {selectedDeltaker && (
