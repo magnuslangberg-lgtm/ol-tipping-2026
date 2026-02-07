@@ -1913,7 +1913,7 @@ export default function OLTippingApp() {
                           <div className="mt-2 space-y-1">
                             {alleTips.map(d => (
                               <div key={d.id} className="flex items-center gap-2 p-1.5 bg-slate-800/50 rounded text-xs">
-                                <span className="text-white font-semibold w-20 truncate">{d.navn}</span>
+                                <span className="text-white font-semibold w-24 truncate" title={d.faktiskNavn && d.faktiskNavn !== d.navn ? d.faktiskNavn : d.navn}>{d.navn}</span>
                                 <div className="flex gap-1 flex-wrap flex-1">
                                   {d.tips[ø.idx]?.map((tip, i) => (
                                     <span key={i} className={`px-1.5 py-0.5 rounded ${i === 0 ? 'bg-yellow-600/30 text-yellow-300' : i === 1 ? 'bg-slate-500/30 text-slate-300' : i === 2 ? 'bg-orange-600/30 text-orange-300' : 'bg-slate-700/50 text-slate-400'}`}>
@@ -1969,7 +1969,7 @@ export default function OLTippingApp() {
                     <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
                       {[...alleTips].sort((a, b) => (b.gullTips || 0) - (a.gullTips || 0)).map(d => (
                         <div key={d.id} className="flex justify-between items-center p-1.5 bg-slate-800/30 rounded text-sm">
-                          <span className="text-white">{d.navn}</span>
+                          <span className="text-white">{d.navn}{d.faktiskNavn && d.faktiskNavn !== d.navn && <span className="text-slate-400 text-xs ml-1">({d.faktiskNavn})</span>}</span>
                           <span className="text-yellow-400 font-bold">{d.gullTips || 0} 🥇</span>
                         </div>
                       ))}
@@ -2462,7 +2462,12 @@ export default function OLTippingApp() {
                           idx === 2 ? 'bg-orange-500 text-orange-900' : 'bg-slate-600 text-white'
                         }`}>{idx + 1}</div>
                         <div className="flex-1 text-left">
-                          <h3 className="font-bold text-white">{d.navn}</h3>
+                          <h3 className="font-bold text-white">
+                            {d.navn}
+                            {d.faktiskNavn && d.faktiskNavn !== d.navn && (
+                              <span className="font-normal text-slate-400 text-sm ml-2">({d.faktiskNavn})</span>
+                            )}
+                          </h3>
                           <p className="text-xs text-slate-400">
                             {gullTipsSynlig ? (
                               <>
