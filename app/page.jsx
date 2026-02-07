@@ -1391,7 +1391,6 @@ export default function OLTippingApp() {
             { id: 'info', label: 'Info', icon: AlertCircle },
             { id: 'tipping', label: 'Tipping / Endre', icon: Send },
             { id: 'studio', label: 'OL-Studio', icon: Radio },
-            { id: 'tips', label: 'Tips dag for dag', icon: Users },
             { id: 'leaderboard', label: 'Resultater', icon: Trophy },
             { id: 'admin', label: 'Admin', icon: Lock },
           ].map(({ id, label, icon: Icon }) => (
@@ -1642,176 +1641,25 @@ export default function OLTippingApp() {
                 OL-STUDIO
                 <Radio className="w-6 h-6 text-red-400 animate-pulse" />
               </h2>
-              <p className="text-sm text-slate-400">Live oppdateringer og chat</p>
+              <p className="text-sm text-slate-400">Live oppdateringer, tips og chat</p>
             </div>
 
-            {/* Live Feed fra Admin */}
-            <div className="bg-gradient-to-br from-red-900/30 to-orange-900/30 rounded-xl p-4 border border-red-500/30">
-              <h3 className="font-bold text-red-400 mb-3 flex items-center gap-2">
-                <Radio className="w-4 h-4" /> Live Oppdateringer
-              </h3>
-              
-              {/* Admin: Ny post */}
-              {isAdminLoggedIn && (
-                <div className="mb-4 p-3 bg-slate-800/50 rounded-lg border border-red-500/30">
-                  <textarea
-                    value={newLiveFeedPost}
-                    onChange={(e) => setNewLiveFeedPost(e.target.value)}
-                    placeholder="Skriv en oppdatering... (støtter emojis! 🥇🎿⛷️)"
-                    className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm resize-none"
-                    rows={2}
-                  />
-                  <div className="flex justify-end mt-2">
-                    <button
-                      onClick={sendLiveFeedPost}
-                      disabled={!newLiveFeedPost.trim()}
-                      className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold rounded-lg text-sm flex items-center gap-2"
-                    >
-                      <Send className="w-4 h-4" /> Publiser
-                    </button>
-                  </div>
-                </div>
-              )}
-              
-              {/* Feed */}
-              <div className="space-y-3 max-h-96 overflow-y-auto">
-                {liveFeed.length === 0 ? (
-                  <p className="text-slate-500 text-center py-4">Ingen oppdateringer ennå</p>
-                ) : (
-                  liveFeed.map(post => (
-                    <div key={post.id} className="bg-slate-800/70 rounded-lg p-3 border-l-4 border-red-500">
-                      <div className="flex justify-between items-start">
-                        <p className="text-white whitespace-pre-wrap">{post.content}</p>
-                        {isAdminLoggedIn && (
-                          <button
-                            onClick={() => deleteLiveFeedPost(post.id)}
-                            className="text-red-400 hover:text-red-300 p-1"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-                      <p className="text-xs text-slate-500 mt-2">{post.date} kl. {post.time}</p>
-                    </div>
-                  ))
-                )}
+            {/* Dagens program + NRK link */}
+            <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-yellow-400 flex items-center gap-2">
+                  <Calendar className="w-4 h-4" /> Dagens øvelser
+                </h3>
+                <a 
+                  href="https://tv.nrk.no/programmer/ol" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-xs px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-full font-semibold flex items-center gap-1"
+                >
+                  📺 Se Live på NRK
+                </a>
               </div>
-            </div>
-
-            {/* Chat */}
-            <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
-              <h3 className="font-bold text-cyan-400 mb-3 flex items-center gap-2">
-                <MessageCircle className="w-4 h-4" /> Chat
-              </h3>
-              
-              {/* Innlogging for chat */}
-              {!studioLoggedIn && !isAdminLoggedIn ? (
-                <div className="bg-slate-900/50 rounded-lg p-4">
-                  <p className="text-slate-300 text-sm mb-3">Logg inn for å delta i chatten:</p>
-                  <div className="space-y-2">
-                    <input
-                      type="text"
-                      value={studioLoginNavn}
-                      onChange={(e) => setStudioLoginNavn(e.target.value)}
-                      placeholder="Lagnavn..."
-                      className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm"
-                    />
-                    <input
-                      type="password"
-                      value={studioLoginPin}
-                      onChange={(e) => setStudioLoginPin(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && handleStudioLogin()}
-                      placeholder="PIN-kode..."
-                      className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm"
-                    />
-                    {studioLoginError && <p className="text-red-400 text-xs">{studioLoginError}</p>}
-                    <button
-                      onClick={handleStudioLogin}
-                      className="w-full py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg text-sm"
-                    >
-                      Logg inn
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {/* Innlogget info */}
-                  <div className="flex items-center justify-between mb-3 p-2 bg-green-900/30 rounded-lg">
-                    <span className="text-green-400 text-sm">
-                      💬 Logget inn som: <strong>{isAdminLoggedIn ? 'Admin' : studioLoggedIn?.navn}</strong>
-                    </span>
-                    {!isAdminLoggedIn && (
-                      <button
-                        onClick={() => setStudioLoggedIn(null)}
-                        className="text-red-400 text-xs hover:text-red-300"
-                      >
-                        Logg ut
-                      </button>
-                    )}
-                  </div>
-                  
-                  {/* Meldinger */}
-                  <div className="space-y-2 max-h-80 overflow-y-auto mb-3 p-2 bg-slate-900/50 rounded-lg">
-                    {chatMessages.length === 0 ? (
-                      <p className="text-slate-500 text-center py-4 text-sm">Ingen meldinger ennå. Vær den første!</p>
-                    ) : (
-                      chatMessages.map(msg => (
-                        <div key={msg.id} className={`p-2 rounded-lg ${
-                          msg.navn === (studioLoggedIn?.navn || 'Admin') 
-                            ? 'bg-cyan-900/30 ml-8' 
-                            : 'bg-slate-800/50 mr-8'
-                        }`}>
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <span className="font-semibold text-cyan-300 text-sm">{msg.navn}</span>
-                              <span className="text-slate-500 text-xs ml-2">{msg.time}</span>
-                            </div>
-                            {isAdminLoggedIn && (
-                              <button
-                                onClick={() => deleteChatMessage(msg.id)}
-                                className="text-red-400 hover:text-red-300 p-0.5"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
-                            )}
-                          </div>
-                          <p className="text-white text-sm mt-1">{msg.message}</p>
-                        </div>
-                      ))
-                    )}
-                    <div ref={chatEndRef} />
-                  </div>
-                  
-                  {/* Send melding */}
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newChatMessage}
-                      onChange={(e) => setNewChatMessage(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && sendChatMessage()}
-                      placeholder="Skriv en melding..."
-                      className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm"
-                    />
-                    <button
-                      onClick={sendChatMessage}
-                      disabled={!newChatMessage.trim()}
-                      className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold rounded-lg"
-                    >
-                      <Send className="w-4 h-4" />
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {/* Dagens program (quick info) */}
-            <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
-              <h3 className="font-bold text-yellow-400 mb-3 flex items-center gap-2">
-                <Calendar className="w-4 h-4" /> Dagens øvelser
-              </h3>
               {(() => {
-                // Finn dagens øvelser basert på dato
-                // OL starter 7. februar 2026 (dag 1)
                 const idag = new Date();
                 const olStart = new Date('2026-02-07');
                 olStart.setHours(0, 0, 0, 0);
@@ -1819,11 +1667,8 @@ export default function OLTippingApp() {
                 const dagNr = Math.floor((idag - olStart) / (1000 * 60 * 60 * 24)) + 1;
                 const dagensØvelser = øvelserPerDag[dagNr] || [];
                 
-                // Vis også hvilken dag det er
-                const dagInfo = dagNr >= 1 && dagNr <= 16 ? `Dag ${dagNr}` : (dagNr < 1 ? 'OL har ikke startet' : 'OL er ferdig');
-                
                 if (dagNr < 1 || dagNr > 16) {
-                  return <p className="text-slate-500 text-sm">{dagInfo}</p>;
+                  return <p className="text-slate-500 text-sm">{dagNr < 1 ? 'OL har ikke startet' : 'OL er ferdig'}</p>;
                 }
                 
                 if (dagensØvelser.length === 0) {
@@ -1832,17 +1677,7 @@ export default function OLTippingApp() {
                 
                 return (
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between mb-2">
-                      <p className="text-sm text-slate-300">📅 Dag {dagNr} - {dagensØvelser[0]?.dato}</p>
-                      <a 
-                        href="https://tv.nrk.no/programmer/ol" 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="text-xs px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-full font-semibold flex items-center gap-1"
-                      >
-                        📺 Se Live på NRK
-                      </a>
-                    </div>
+                    <p className="text-sm text-slate-300 mb-2">📅 Dag {dagNr} - {dagensØvelser[0]?.dato}</p>
                     {dagensØvelser.map(ø => {
                       const harResultat = resultater[ø.idx]?.some(r => r?.trim());
                       return (
@@ -1866,6 +1701,285 @@ export default function OLTippingApp() {
                   </div>
                 );
               })()}
+            </div>
+
+            {/* Live Feed fra Admin - Kollapsbar */}
+            <details className="bg-gradient-to-br from-red-900/30 to-orange-900/30 rounded-xl border border-red-500/30 group" open>
+              <summary className="p-4 cursor-pointer flex items-center justify-between">
+                <h3 className="font-bold text-red-400 flex items-center gap-2">
+                  <Radio className="w-4 h-4 animate-pulse" /> Live Oppdateringer
+                  {liveFeed.length > 0 && <span className="bg-red-600 text-white text-xs px-2 py-0.5 rounded-full">{liveFeed.length}</span>}
+                </h3>
+                <ChevronDown className="w-5 h-5 text-red-400 group-open:rotate-180 transition-transform" />
+              </summary>
+              <div className="px-4 pb-4">
+                {isAdminLoggedIn && (
+                  <div className="mb-4 p-3 bg-slate-800/50 rounded-lg border border-red-500/30">
+                    <textarea
+                      value={newLiveFeedPost}
+                      onChange={(e) => setNewLiveFeedPost(e.target.value)}
+                      placeholder="Skriv en oppdatering... (støtter emojis! 🥇🎿⛷️)"
+                      className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm resize-none"
+                      rows={2}
+                    />
+                    <div className="flex justify-end mt-2">
+                      <button
+                        onClick={sendLiveFeedPost}
+                        disabled={!newLiveFeedPost.trim()}
+                        className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold rounded-lg text-sm flex items-center gap-2"
+                      >
+                        <Send className="w-4 h-4" /> Publiser
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                <div className="space-y-3 max-h-64 overflow-y-auto">
+                  {liveFeed.length === 0 ? (
+                    <p className="text-slate-500 text-center py-4">Ingen oppdateringer ennå</p>
+                  ) : (
+                    liveFeed.map(post => (
+                      <div key={post.id} className="bg-slate-800/70 rounded-lg p-3 border-l-4 border-red-500">
+                        <div className="flex justify-between items-start">
+                          <p className="text-white whitespace-pre-wrap text-sm">{post.content}</p>
+                          {isAdminLoggedIn && (
+                            <button onClick={() => deleteLiveFeedPost(post.id)} className="text-red-400 hover:text-red-300 p-1">
+                              <X className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                        <p className="text-xs text-slate-500 mt-2">{post.date} kl. {post.time}</p>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </details>
+
+            {/* Chat - Flyttet opp, mer fokus */}
+            <div className="bg-slate-800/50 rounded-xl p-4 border border-cyan-500/30">
+              <h3 className="font-bold text-cyan-400 mb-3 flex items-center gap-2"><MessageCircle className="w-4 h-4" /> Chat</h3>
+              
+              {!studioLoggedIn && !isAdminLoggedIn ? (
+                <div className="bg-slate-900/50 rounded-lg p-4">
+                  <p className="text-slate-300 text-sm mb-3">Logg inn for å delta i chatten:</p>
+                  <div className="space-y-2">
+                    <input type="text" value={studioLoginNavn} onChange={(e) => setStudioLoginNavn(e.target.value)} placeholder="Lagnavn..." className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm" />
+                    <input type="password" value={studioLoginPin} onChange={(e) => setStudioLoginPin(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleStudioLogin()} placeholder="PIN-kode..." className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm" />
+                    {studioLoginError && <p className="text-red-400 text-xs">{studioLoginError}</p>}
+                    <button onClick={handleStudioLogin} className="w-full py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg text-sm">Logg inn</button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-3 p-2 bg-green-900/30 rounded-lg">
+                    <span className="text-green-400 text-sm">💬 Logget inn som: <strong>{isAdminLoggedIn ? 'Admin' : studioLoggedIn?.navn}</strong></span>
+                    {!isAdminLoggedIn && <button onClick={() => setStudioLoggedIn(null)} className="text-red-400 text-xs hover:text-red-300">Logg ut</button>}
+                  </div>
+                  
+                  <div className="space-y-2 max-h-72 overflow-y-auto mb-3 p-2 bg-slate-900/50 rounded-lg">
+                    {chatMessages.length === 0 ? (
+                      <p className="text-slate-500 text-center py-4 text-sm">Ingen meldinger ennå. Vær den første!</p>
+                    ) : (
+                      chatMessages.map(msg => (
+                        <div key={msg.id} className={`p-2 rounded-lg ${msg.navn === (studioLoggedIn?.navn || 'Admin') ? 'bg-cyan-900/30 ml-8' : 'bg-slate-800/50 mr-8'}`}>
+                          <div className="flex justify-between items-start">
+                            <div><span className="font-semibold text-cyan-300 text-sm">{msg.navn}</span><span className="text-slate-500 text-xs ml-2">{msg.time}</span></div>
+                            {isAdminLoggedIn && <button onClick={() => deleteChatMessage(msg.id)} className="text-red-400 hover:text-red-300 p-0.5"><X className="w-3 h-3" /></button>}
+                          </div>
+                          <p className="text-white text-sm mt-1">{msg.message}</p>
+                        </div>
+                      ))
+                    )}
+                    <div ref={chatEndRef} />
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <input type="text" value={newChatMessage} onChange={(e) => setNewChatMessage(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && sendChatMessage()} placeholder="Skriv en melding..." className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm" />
+                    <button onClick={sendChatMessage} disabled={!newChatMessage.trim()} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold rounded-lg"><Send className="w-4 h-4" /></button>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* TIPS DAG FOR DAG - Integrert */}
+            <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+              <h3 className="font-bold text-cyan-400 mb-3 flex items-center gap-2">📊 Deltakernes tips</h3>
+
+              {isAdminLoggedIn && (
+                <div className="bg-red-900/30 border border-red-500/50 rounded-lg p-3 mb-4">
+                  <p className="text-sm text-red-300 font-semibold mb-2">Admin: Synlighet</p>
+                  <div className="flex items-center justify-between p-2 bg-slate-800/50 rounded mb-2">
+                    <span className="text-white text-sm">🇳🇴 Gull-tips</span>
+                    <button
+                      onClick={() => { const nyVerdi = !gullTipsSynlig; setGullTipsSynlig(nyVerdi); saveSynlighetToFirebase(synligeDager, nyVerdi); }}
+                      className={`px-3 py-1 rounded text-xs font-semibold flex items-center gap-1 ${gullTipsSynlig ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-300'}`}
+                    >
+                      {gullTipsSynlig ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                      {gullTipsSynlig ? 'Synlig' : 'Skjult'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-slate-400 mb-1">Åpne dager:</p>
+                  <div className="flex gap-1 flex-wrap">
+                    {Array.from({ length: 16 }, (_, i) => i + 1).map(dag => (
+                      <button key={dag}
+                        onClick={() => { const nyeDager = { ...synligeDager, [dag]: !synligeDager[dag] }; setSynligeDager(nyeDager); saveSynlighetToFirebase(nyeDager, gullTipsSynlig); }}
+                        className={`w-8 h-8 rounded text-xs font-semibold ${synligeDager[dag] ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-400'}`}
+                      >{dag}</button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-1 overflow-x-auto pb-2 mb-4">
+                {Array.from({ length: 16 }, (_, i) => i + 1).map(dag => (
+                  <button key={dag} onClick={() => setTipsDag(dag)}
+                    className={`px-3 py-2 rounded-lg font-semibold whitespace-nowrap flex items-center gap-1 text-sm ${tipsDag === dag ? 'bg-cyan-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}`}
+                  >
+                    Dag {dag}
+                    {synligeDager[dag] ? <Eye className="w-3 h-3 text-green-400" /> : <EyeOff className="w-3 h-3 text-slate-500" />}
+                  </button>
+                ))}
+              </div>
+
+              {synligeDager[tipsDag] ? (
+                <div className="space-y-4">
+                  {øvelserPerDag[tipsDag]?.map(ø => {
+                    const teller = {};
+                    alleTips.forEach(d => {
+                      d.tips[ø.idx]?.forEach((navn, pos) => {
+                        if (navn && navn.trim()) {
+                          let kanoniskNavn = navn;
+                          for (const eksisterendeNavn of Object.keys(teller)) {
+                            const { match } = fuzzyMatch(navn, eksisterendeNavn);
+                            if (match) { kanoniskNavn = eksisterendeNavn; break; }
+                          }
+                          if (!teller[kanoniskNavn]) teller[kanoniskNavn] = { total: 0, posisjoner: {} };
+                          teller[kanoniskNavn].total++;
+                          teller[kanoniskNavn].posisjoner[pos + 1] = (teller[kanoniskNavn].posisjoner[pos + 1] || 0) + 1;
+                        }
+                      });
+                    });
+                    const stats = Object.entries(teller).map(([navn, data]) => ({ navn, ...data })).sort((a, b) => b.total - a.total);
+                    const maxTips = stats[0]?.total || 1;
+                    
+                    return (
+                      <div key={ø.idx} className="bg-slate-900/50 rounded-lg p-3 border border-slate-600">
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <h4 className="font-bold text-white">{ø.øvelse}</h4>
+                            <p className="text-xs text-slate-400">{ø.type === 'individuell' ? '5 plasser' : '3 plasser'} • {alleTips.length} deltakere</p>
+                          </div>
+                          <span className={`px-2 py-1 rounded text-xs font-bold ${SPORT_COLORS[ø.sport]?.bg} text-white`}>{ø.sport.toUpperCase()}</span>
+                        </div>
+                        
+                        {stats.length > 0 && (
+                          <div className="mb-2">
+                            <p className="text-xs text-cyan-400 font-bold mb-2">📊 Mest tippet:</p>
+                            <div className="space-y-1">
+                              {stats.slice(0, 5).map(({ navn, total, posisjoner }, idx) => {
+                                const prosent = Math.round((total / alleTips.length) * 100);
+                                const medaljer = ['🥇', '🥈', '🥉'];
+                                const posStr = Object.entries(posisjoner).sort((a, b) => b[1] - a[1]).map(([pos, ant]) => `${ant}x på ${pos}.`).join(', ');
+                                return (
+                                  <div key={navn} className="relative">
+                                    <div className="absolute inset-0 rounded bg-gradient-to-r from-cyan-600/40 to-cyan-600/10" style={{ width: `${(total / maxTips) * 100}%` }} />
+                                    <div className="relative flex items-center justify-between p-2 rounded border border-cyan-600/30">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-sm">{idx < 3 ? medaljer[idx] : `#${idx + 1}`}</span>
+                                        <div>
+                                          <span className="font-semibold text-white text-sm">{navn}</span>
+                                          <p className="text-xs text-slate-400">{posStr}</p>
+                                        </div>
+                                      </div>
+                                      <div className="text-right">
+                                        <span className="text-cyan-300 font-bold text-sm">{total}x</span>
+                                        <span className="text-slate-400 text-xs ml-1">({prosent}%)</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+                        
+                        <details className="group">
+                          <summary className="cursor-pointer text-xs text-slate-400 hover:text-white flex items-center gap-1">
+                            <ChevronDown className="w-3 h-3 group-open:rotate-180 transition-transform" /> Se alle tips ({alleTips.length} deltakere)
+                          </summary>
+                          <div className="mt-2 space-y-1">
+                            {alleTips.map(d => (
+                              <div key={d.id} className="flex items-center gap-2 p-1.5 bg-slate-800/50 rounded text-xs">
+                                <span className="text-white font-semibold w-20 truncate">{d.navn}</span>
+                                <div className="flex gap-1 flex-wrap flex-1">
+                                  {d.tips[ø.idx]?.map((tip, i) => (
+                                    <span key={i} className={`px-1.5 py-0.5 rounded ${i === 0 ? 'bg-yellow-600/30 text-yellow-300' : i === 1 ? 'bg-slate-500/30 text-slate-300' : i === 2 ? 'bg-orange-600/30 text-orange-300' : 'bg-slate-700/50 text-slate-400'}`}>
+                                      {i + 1}. {tip || '-'}
+                                    </span>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </details>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="bg-slate-900/30 rounded-lg p-6 text-center">
+                  <EyeOff className="w-12 h-12 mx-auto mb-2 text-slate-600" />
+                  <h4 className="text-white font-bold mb-1">Dag {tipsDag} er ikke åpnet ennå</h4>
+                  <p className="text-slate-400 text-sm">Tips vises når admin åpner dem</p>
+                </div>
+              )}
+            </div>
+
+            {/* Gull-tips seksjon */}
+            <div className={`rounded-xl p-4 border ${gullTipsSynlig ? 'bg-yellow-900/30 border-yellow-500/50' : 'bg-slate-800/30 border-slate-700'}`}>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-bold text-yellow-400 flex items-center gap-2">🇳🇴 Norske gull-tips</h3>
+                {!gullTipsSynlig && <span className="text-xs text-slate-500 flex items-center gap-1"><EyeOff className="w-3 h-3" /> Skjult</span>}
+              </div>
+              
+              {gullTipsSynlig ? (
+                <div>
+                  {(() => {
+                    const gullTeller = {};
+                    alleTips.forEach(d => { const gull = d.gullTips || 0; gullTeller[gull] = (gullTeller[gull] || 0) + 1; });
+                    const gullStats = Object.entries(gullTeller).map(([gull, antall]) => ({ gull: parseInt(gull), antall })).sort((a, b) => b.antall - a.antall);
+                    return (
+                      <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 mb-3">
+                        {gullStats.map(({ gull, antall }) => (
+                          <div key={gull} className="bg-slate-800/50 rounded-lg p-2 text-center">
+                            <div className="text-lg font-black text-yellow-400">{gull}</div>
+                            <div className="text-xs text-slate-400">{antall}x</div>
+                          </div>
+                        ))}
+                      </div>
+                    );
+                  })()}
+                  <details className="group">
+                    <summary className="cursor-pointer text-xs text-slate-400 hover:text-white flex items-center gap-1">
+                      <ChevronDown className="w-3 h-3 group-open:rotate-180 transition-transform" /> Se alle ({alleTips.length} deltakere)
+                    </summary>
+                    <div className="mt-2 space-y-1 max-h-40 overflow-y-auto">
+                      {[...alleTips].sort((a, b) => (b.gullTips || 0) - (a.gullTips || 0)).map(d => (
+                        <div key={d.id} className="flex justify-between items-center p-1.5 bg-slate-800/30 rounded text-sm">
+                          <span className="text-white">{d.navn}</span>
+                          <span className="text-yellow-400 font-bold">{d.gullTips || 0} 🥇</span>
+                        </div>
+                      ))}
+                    </div>
+                  </details>
+                </div>
+              ) : (
+                <div className="text-center py-4 text-slate-500">
+                  <EyeOff className="w-8 h-8 mx-auto mb-1 opacity-50" />
+                  <p className="text-sm">Vises når konkurransen starter</p>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -2277,288 +2391,6 @@ export default function OLTippingApp() {
           </div>
         )}
 
-        {/* TIPS - Se hva alle har tippet */}
-        {view === 'tips' && (
-          <div className="space-y-4">
-            <div className="text-center">
-              <h2 className="text-xl font-black text-cyan-400">📊 DELTAKERNES TIPS</h2>
-              <p className="text-sm text-slate-400 mt-1">Se hva deltakerne har tippet</p>
-            </div>
-
-            {/* Admin synlighetskontroll */}
-            {isAdminLoggedIn && (
-              <div className="bg-red-900/30 border border-red-500/50 rounded-xl p-4">
-                <h3 className="font-bold text-red-400 mb-3 flex items-center gap-2">
-                  <Lock className="w-4 h-4" /> Admin: Synlighetskontroll
-                </h3>
-                
-                {/* Gull-tips toggle */}
-                <div className="flex items-center justify-between p-3 bg-slate-800/50 rounded-lg mb-3">
-                  <div>
-                    <p className="text-white font-semibold">🇳🇴 Norske gull-tips</p>
-                    <p className="text-xs text-slate-400">Vis deltakernes gjetninger på antall gull</p>
-                  </div>
-                  <button
-                    onClick={() => {
-                      const nyVerdi = !gullTipsSynlig;
-                      setGullTipsSynlig(nyVerdi);
-                      saveSynlighetToFirebase(synligeDager, nyVerdi);
-                    }}
-                    className={`px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 ${
-                      gullTipsSynlig ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-300'
-                    }`}
-                  >
-                    {gullTipsSynlig ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-                    {gullTipsSynlig ? 'Synlig' : 'Skjult'}
-                  </button>
-                </div>
-
-                {/* Dag-synlighet */}
-                <p className="text-sm text-slate-300 mb-2">Åpne tips for dag:</p>
-                <div className="flex gap-1 flex-wrap">
-                  {Array.from({ length: 16 }, (_, i) => i + 1).map(dag => (
-                    <button
-                      key={dag}
-                      onClick={() => {
-                        const nyeDager = { ...synligeDager, [dag]: !synligeDager[dag] };
-                        setSynligeDager(nyeDager);
-                        saveSynlighetToFirebase(nyeDager, gullTipsSynlig);
-                      }}
-                      className={`px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 ${
-                        synligeDager[dag] ? 'bg-green-600 text-white' : 'bg-slate-700 text-slate-400'
-                      }`}
-                    >
-                      D{dag}
-                      {synligeDager[dag] ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Dag-velger */}
-            <div className="flex gap-1 overflow-x-auto pb-2">
-              {Array.from({ length: 16 }, (_, i) => i + 1).map(dag => (
-                <button
-                  key={dag}
-                  onClick={() => setTipsDag(dag)}
-                  className={`px-3 py-2 rounded-lg font-semibold whitespace-nowrap flex items-center gap-1 text-sm ${
-                    tipsDag === dag 
-                      ? 'bg-cyan-600 text-white' 
-                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-                  }`}
-                >
-                  Dag {dag}
-                  {synligeDager[dag] ? (
-                    <Eye className="w-3 h-3 text-green-400" />
-                  ) : (
-                    <EyeOff className="w-3 h-3 text-slate-500" />
-                  )}
-                </button>
-              ))}
-            </div>
-
-            {/* Øvelser for valgt dag */}
-            {synligeDager[tipsDag] ? (
-              <div className="space-y-4">
-                {øvelserPerDag[tipsDag]?.map(ø => {
-                  // Beregn statistikk med fuzzy matching for å gruppere lignende navn
-                  const teller = {};
-                  const navnMapping = {}; // Map fra originalnavn til kanonisk navn
-                  
-                  alleTips.forEach(d => {
-                    d.tips[ø.idx]?.forEach((navn, pos) => {
-                      if (navn && navn.trim()) {
-                        // Finn om dette navnet matcher et eksisterende navn i teller
-                        let kanoniskNavn = navn;
-                        let funnetMatch = false;
-                        
-                        for (const eksisterendeNavn of Object.keys(teller)) {
-                          const { match } = fuzzyMatch(navn, eksisterendeNavn);
-                          if (match) {
-                            kanoniskNavn = eksisterendeNavn;
-                            funnetMatch = true;
-                            break;
-                          }
-                        }
-                        
-                        if (!funnetMatch) {
-                          teller[navn] = { total: 0, posisjoner: {}, varianter: [] };
-                        }
-                        
-                        teller[kanoniskNavn].total++;
-                        teller[kanoniskNavn].posisjoner[pos + 1] = (teller[kanoniskNavn].posisjoner[pos + 1] || 0) + 1;
-                        if (!teller[kanoniskNavn].varianter.includes(navn)) {
-                          teller[kanoniskNavn].varianter.push(navn);
-                        }
-                      }
-                    });
-                  });
-                  
-                  const stats = Object.entries(teller)
-                    .map(([navn, data]) => ({ navn, ...data }))
-                    .sort((a, b) => b.total - a.total);
-                  const maxTips = stats[0]?.total || 1;
-                  
-                  return (
-                    <div key={ø.idx} className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
-                      <div className="flex items-start justify-between mb-3">
-                        <div>
-                          <h3 className="font-bold text-white text-lg">{ø.øvelse}</h3>
-                          <p className="text-xs text-slate-400">
-                            {ø.type === 'individuell' ? '5 plasser' : '3 plasser'} • {alleTips.length} deltakere
-                          </p>
-                        </div>
-                        <span className={`px-2 py-1 rounded text-xs font-bold ${SPORT_COLORS[ø.sport]?.bg} text-white`}>
-                          {ø.sport.toUpperCase()}
-                        </span>
-                      </div>
-                      
-                      {/* Mest tippede - forbedret visning */}
-                      {stats.length > 0 && (
-                        <div className="mb-4">
-                          <p className="text-sm text-cyan-400 font-bold mb-3 flex items-center gap-2">
-                            📊 Mest tippet:
-                          </p>
-                          <div className="space-y-2">
-                            {stats.slice(0, 5).map(({ navn, total, posisjoner }, idx) => {
-                              const prosent = Math.round((total / alleTips.length) * 100);
-                              const medaljer = ['🥇', '🥈', '🥉'];
-                              const posStr = Object.entries(posisjoner)
-                                .sort((a, b) => b[1] - a[1])
-                                .map(([pos, ant]) => `${ant}x på ${pos}.`)
-                                .join(', ');
-                              
-                              return (
-                                <div key={navn} className="relative">
-                                  {/* Bakgrunnsbar */}
-                                  <div 
-                                    className="absolute inset-0 rounded-lg bg-gradient-to-r from-cyan-600/40 to-cyan-600/10"
-                                    style={{ width: `${(total / maxTips) * 100}%` }}
-                                  />
-                                  {/* Innhold */}
-                                  <div className="relative flex items-center justify-between p-3 rounded-lg border border-cyan-600/30">
-                                    <div className="flex items-center gap-3">
-                                      <span className="text-lg">{idx < 3 ? medaljer[idx] : `#${idx + 1}`}</span>
-                                      <div>
-                                        <span className="font-bold text-white">{navn}</span>
-                                        <p className="text-xs text-slate-400">{posStr}</p>
-                                      </div>
-                                    </div>
-                                    <div className="text-right">
-                                      <span className="text-cyan-300 font-bold">{total}x</span>
-                                      <span className="text-slate-400 text-sm ml-1">({prosent}%)</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* Alle deltakeres tips */}
-                      <details className="group">
-                        <summary className="cursor-pointer text-sm text-slate-400 hover:text-white flex items-center gap-1">
-                          <ChevronDown className="w-4 h-4 group-open:rotate-180 transition-transform" />
-                          Se alle tips ({alleTips.length} deltakere)
-                        </summary>
-                        <div className="mt-3 space-y-2">
-                          {alleTips.map(d => (
-                            <div key={d.id} className="flex items-center gap-3 p-2 bg-slate-900/50 rounded">
-                              <span className="text-white font-semibold w-24 truncate">{d.navn}</span>
-                              <div className="flex gap-1 flex-wrap flex-1">
-                                {d.tips[ø.idx]?.map((tip, i) => (
-                                  <span key={i} className={`px-2 py-0.5 rounded text-xs ${
-                                    i === 0 ? 'bg-yellow-600/30 text-yellow-300' :
-                                    i === 1 ? 'bg-slate-500/30 text-slate-300' :
-                                    i === 2 ? 'bg-orange-600/30 text-orange-300' :
-                                    'bg-slate-700/50 text-slate-400'
-                                  }`}>
-                                    {i + 1}. {tip || '-'}
-                                  </span>
-                                ))}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </details>
-                    </div>
-                  );
-                })}
-              </div>
-            ) : (
-              <div className="bg-slate-800/30 rounded-xl p-8 text-center border border-slate-700">
-                <EyeOff className="w-16 h-16 mx-auto mb-3 text-slate-600" />
-                <h3 className="text-white font-bold mb-2">Dag {tipsDag} er ikke åpnet ennå</h3>
-                <p className="text-slate-400 text-sm">
-                  Tips for denne dagen vises når admin åpner dem
-                </p>
-              </div>
-            )}
-
-            {/* Gull-tips seksjon - NEDERST */}
-            <div className={`rounded-xl p-4 border ${
-              gullTipsSynlig 
-                ? 'bg-yellow-900/30 border-yellow-500/50' 
-                : 'bg-slate-800/30 border-slate-700'
-            }`}>
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-yellow-400 flex items-center gap-2">
-                  🇳🇴 Norske gull-tips
-                </h3>
-                {!gullTipsSynlig && (
-                  <span className="text-xs text-slate-500 flex items-center gap-1">
-                    <EyeOff className="w-3 h-3" /> Skjult til konkurransen starter
-                  </span>
-                )}
-              </div>
-              
-              {gullTipsSynlig ? (
-                <div>
-                  {/* Statistikk */}
-                  {(() => {
-                    const gullTeller = {};
-                    alleTips.forEach(d => {
-                      const gull = d.gullTips || 0;
-                      gullTeller[gull] = (gullTeller[gull] || 0) + 1;
-                    });
-                    const gullStats = Object.entries(gullTeller)
-                      .map(([gull, antall]) => ({ gull: parseInt(gull), antall }))
-                      .sort((a, b) => b.antall - a.antall);
-                    
-                    return (
-                      <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mb-4">
-                        {gullStats.map(({ gull, antall }) => (
-                          <div key={gull} className="bg-slate-800/50 rounded-lg p-2 text-center">
-                            <div className="text-xl font-black text-yellow-400">{gull}</div>
-                            <div className="text-xs text-slate-400">{antall} {antall === 1 ? 'pers' : 'pers'}</div>
-                          </div>
-                        ))}
-                      </div>
-                    );
-                  })()}
-                  
-                  {/* Alle tips */}
-                  <div className="space-y-1 max-h-60 overflow-y-auto">
-                    {[...alleTips].sort((a, b) => (b.gullTips || 0) - (a.gullTips || 0)).map(d => (
-                      <div key={d.id} className="flex justify-between items-center p-2 bg-slate-800/30 rounded">
-                        <span className="text-white">{d.navn}</span>
-                        <span className="text-yellow-400 font-bold">{d.gullTips || 0} 🥇</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="text-center py-6 text-slate-500">
-                  <EyeOff className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                  <p>Gull-tips er skjult</p>
-                  <p className="text-xs">Vises når konkurransen starter</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
 
         {/* LEADERBOARD */}
         {view === 'leaderboard' && (
