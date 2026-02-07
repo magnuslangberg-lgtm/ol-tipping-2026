@@ -1827,7 +1827,7 @@ export default function OLTippingApp() {
                         const maxTips = stats[0]?.total || 1;
                         
                         return (
-                          <details key={ø.idx} className="bg-slate-900/50 rounded-lg border border-slate-600 group">
+                          <details key={ø.idx} className="bg-slate-900/50 rounded-lg border border-slate-600 group" open>
                             <summary className="p-3 cursor-pointer flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <span className={`text-xs px-2 py-0.5 rounded ${SPORT_COLORS[ø.sport]?.bg} text-white`}>{ø.sport.toUpperCase()}</span>
