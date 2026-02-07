@@ -700,6 +700,17 @@ function fuzzyMatch(name1, name2) {
   const lastName1 = parts1[parts1.length - 1];
   const lastName2 = parts2[parts2.length - 1];
   
+  // NYTT: Sjekk for reverserte navn (Su Yiming vs Yiming Su)
+  // Sorter ordene og sammenlign
+  const sorted1 = [...parts1].sort().join(' ');
+  const sorted2 = [...parts2].sort().join(' ');
+  if (sorted1 === sorted2) return { match: true, score: 0.95 };
+  
+  // Normalisert versjon av reversert
+  const normParts1 = n1.split(' ').sort().join(' ');
+  const normParts2 = n2.split(' ').sort().join(' ');
+  if (normParts1 === normParts2) return { match: true, score: 0.93 };
+  
   // Hvis ett av navnene er bare etternavn, og det matcher
   if (parts1.length === 1 && lastName1.length > 2) {
     if (lastName1 === lastName2) return { match: true, score: 0.92 };
@@ -924,9 +935,16 @@ export default function OLTippingApp() {
     // Lytt til synlighetsinnstillinger fra Firebase
     const unsubscribeSynlighet = onSnapshot(doc(db, 'config', 'synlighet'), (docSnap) => {
       if (docSnap.exists()) {
-        setSynligeDager(docSnap.data().dager || {});
+        const dager = docSnap.data().dager || {};
+        setSynligeDager(dager);
         setGullTipsSynlig(docSnap.data().gullTips || false);
         setPåmeldingLåst(docSnap.data().påmeldingLåst || false);
+        
+        // Sett tipsDag til høyeste synlige dag
+        const synlige = Object.entries(dager).filter(([_, synlig]) => synlig).map(([dag, _]) => parseInt(dag));
+        if (synlige.length > 0) {
+          setTipsDag(Math.max(...synlige));
+        }
       }
     }, (error) => {
       console.error('Feil ved lasting av synlighet:', error);
