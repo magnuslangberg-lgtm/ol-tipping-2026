@@ -877,6 +877,9 @@ export default function OLTippingApp() {
   const [nyPin, setNyPin] = useState(''); // For å sette PIN ved første innsending
   const [editSaveStatus, setEditSaveStatus] = useState(null);
   const [showLoginModal, setShowLoginModal] = useState(false); // Vis innloggingsmodal
+  const [editingNavnId, setEditingNavnId] = useState(null); // ID for deltaker som får navn redigert
+  const [editLagnavn, setEditLagnavn] = useState('');
+  const [editFaktiskNavn, setEditFaktiskNavn] = useState('');
 
   useEffect(() => {
     const init = {};
@@ -973,6 +976,19 @@ export default function OLTippingApp() {
       return true;
     } catch (e) {
       console.error('Feil ved sletting:', e);
+      return false;
+    }
+  };
+
+  const updateDeltakerNavnInFirebase = async (id, lagnavn, faktiskNavn) => {
+    try {
+      await setDoc(doc(db, 'deltakere', id.toString()), { 
+        navn: lagnavn,
+        faktiskNavn: faktiskNavn || ''
+      }, { merge: true });
+      return true;
+    } catch (e) {
+      console.error('Feil ved oppdatering av navn:', e);
       return false;
     }
   };
@@ -2592,32 +2608,30 @@ export default function OLTippingApp() {
                   </div>
                 </div>
 
-                {/* Deltakerliste */}
+                {/* Deltakerliste med navn-redigering */}
                 <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
-                  <h3 className="font-bold text-cyan-400 mb-3">📋 Innsendte tips ({alleTips.length})</h3>
+                  <h3 className="font-bold text-cyan-400 mb-3">📋 Deltakere - Lagnavn & Navn ({alleTips.length})</h3>
+                  <p className="text-xs text-slate-400 mb-3">Klikk på en deltaker for å redigere lagnavn og faktisk navn</p>
                   {alleTips.length === 0 ? (
                     <p className="text-slate-400 text-sm">Ingen deltakere enda</p>
                   ) : (
-                    <div className="space-y-1 max-h-48 overflow-y-auto">
-                      {alleTips.map((d) => {
-                        const unknowns = getUnknownNames(d);
+                    <div className="space-y-1 max-h-96 overflow-y-auto">
+                      {alleTips.map((d, idx) => {
+                        const isEditing = editingNavnId === d.id;
                         const isConfirmingDelete = deleteConfirmId === d.id;
                         
                         return (
-                          <div key={d.id} className={`flex items-center gap-2 p-2 rounded-lg text-sm ${
-                            selectedDeltaker?.id === d.id ? 'bg-cyan-600/30 border border-cyan-500' : 'bg-slate-700/50'
+                          <div key={d.id} className={`p-2 rounded-lg text-sm ${
+                            isEditing ? 'bg-cyan-600/30 border border-cyan-500' : 'bg-slate-700/50'
                           }`}>
                             {isConfirmingDelete ? (
-                              // Bekreftelsesvisning
-                              <div className="flex-1 flex items-center justify-between">
+                              // Bekreftelsesvisning for sletting
+                              <div className="flex items-center justify-between">
                                 <span className="text-red-300 text-xs">Slette {d.navn}?</span>
                                 <div className="flex gap-1">
                                   <button
                                     onClick={async () => {
-                                      const success = await deleteDeltakerFromFirebase(d.id);
-                                      if (success) {
-                                        if (selectedDeltaker?.id === d.id) setSelectedDeltaker(null);
-                                      }
+                                      await deleteDeltakerFromFirebase(d.id);
                                       setDeleteConfirmId(null);
                                     }}
                                     className="px-2 py-1 bg-red-600 text-white text-xs rounded font-semibold"
@@ -2632,41 +2646,94 @@ export default function OLTippingApp() {
                                   </button>
                                 </div>
                               </div>
+                            ) : isEditing ? (
+                              // Redigeringsmodus
+                              <div className="space-y-2">
+                                <div className="flex gap-2">
+                                  <div className="flex-1">
+                                    <label className="text-xs text-cyan-300 block mb-1">Lagnavn:</label>
+                                    <input
+                                      type="text"
+                                      value={editLagnavn}
+                                      onChange={(e) => setEditLagnavn(e.target.value)}
+                                      className="w-full px-2 py-1 bg-slate-900 border border-slate-600 rounded text-white text-sm"
+                                    />
+                                  </div>
+                                  <div className="flex-1">
+                                    <label className="text-xs text-cyan-300 block mb-1">Faktisk navn:</label>
+                                    <input
+                                      type="text"
+                                      value={editFaktiskNavn}
+                                      onChange={(e) => setEditFaktiskNavn(e.target.value)}
+                                      className="w-full px-2 py-1 bg-slate-900 border border-slate-600 rounded text-white text-sm"
+                                      placeholder="F.eks. Ola Nordmann"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="flex gap-1 justify-end">
+                                  <button
+                                    onClick={async () => {
+                                      const success = await updateDeltakerNavnInFirebase(d.id, editLagnavn, editFaktiskNavn);
+                                      if (success) {
+                                        setEditingNavnId(null);
+                                      }
+                                    }}
+                                    className="px-3 py-1 bg-green-600 text-white text-xs rounded font-semibold"
+                                  >
+                                    Lagre
+                                  </button>
+                                  <button
+                                    onClick={() => setEditingNavnId(null)}
+                                    className="px-3 py-1 bg-slate-600 text-white text-xs rounded"
+                                  >
+                                    Avbryt
+                                  </button>
+                                </div>
+                              </div>
                             ) : (
                               // Normal visning
-                              <>
+                              <div className="flex items-center justify-between">
                                 <button 
-                                  onClick={() => setSelectedDeltaker(selectedDeltaker?.id === d.id ? null : d)}
-                                  className="flex-1 flex items-center justify-between hover:opacity-80"
-                                >
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-semibold text-white">{d.navn}</span>
-                                    {unknowns.length > 0 && (
-                                      <span className="bg-yellow-500 text-yellow-900 text-xs px-1.5 rounded-full font-bold">{unknowns.length}</span>
-                                    )}
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-xs text-yellow-400" title="PIN-kode">🔑 {d.pin || genererPin(d.navn)}</span>
-                                    <span className="text-xs text-slate-400">Gull: {d.gullTips}</span>
-                                  </div>
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setDeleteConfirmId(d.id);
+                                  onClick={() => {
+                                    setEditingNavnId(d.id);
+                                    setEditLagnavn(d.navn);
+                                    setEditFaktiskNavn(d.faktiskNavn || '');
                                   }}
-                                  className="p-1.5 text-red-400 hover:bg-red-600/30 rounded"
-                                  title="Slett deltaker"
+                                  className="flex-1 text-left hover:opacity-80"
                                 >
-                                  <Trash2 className="w-4 h-4" />
+                                  <div className="flex items-center gap-2">
+                                    <div>
+                                      <span className="font-semibold text-white">{d.navn}</span>
+                                      {d.faktiskNavn && (
+                                        <span className="text-slate-400 ml-2">({d.faktiskNavn})</span>
+                                      )}
+                                      {!d.faktiskNavn && (
+                                        <span className="text-yellow-500 text-xs ml-2">⚠️ Mangler navn</span>
+                                      )}
+                                    </div>
+                                  </div>
                                 </button>
-                              </>
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs text-yellow-400" title="PIN-kode">🔑 {d.pin || genererPin(d.navn)}</span>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setDeleteConfirmId(d.id);
+                                    }}
+                                    className="p-1 text-red-400 hover:bg-red-600/30 rounded"
+                                    title="Slett deltaker"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </div>
                             )}
                           </div>
                         );
                       })}
                     </div>
                   )}
+                </div>
                 </div>
 
                 {/* Valgt deltaker */}
