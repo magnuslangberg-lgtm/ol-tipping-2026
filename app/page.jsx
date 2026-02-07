@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Trophy, Users, Calendar, ChevronDown, ChevronUp, Send, Eye, EyeOff, Mountain, Flag, CheckCircle, AlertCircle, Lock, LogOut, User, FileText, AlertTriangle, List, X, Download, Upload, Trash2 } from 'lucide-react';
+import { Trophy, Users, Calendar, ChevronDown, ChevronUp, Send, Eye, EyeOff, Mountain, Flag, CheckCircle, AlertCircle, Lock, LogOut, User, FileText, AlertTriangle, List, X, Download, Upload, Trash2, MessageCircle, Radio } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 
@@ -880,6 +880,17 @@ export default function OLTippingApp() {
   const [editingNavnId, setEditingNavnId] = useState(null); // ID for deltaker som får navn redigert
   const [editLagnavn, setEditLagnavn] = useState('');
   const [editFaktiskNavn, setEditFaktiskNavn] = useState('');
+  
+  // OL-Studio (Live feed + Chat)
+  const [liveFeed, setLiveFeed] = useState([]); // Admin-poster
+  const [chatMessages, setChatMessages] = useState([]); // Chat-meldinger
+  const [newChatMessage, setNewChatMessage] = useState('');
+  const [newLiveFeedPost, setNewLiveFeedPost] = useState('');
+  const [studioLoggedIn, setStudioLoggedIn] = useState(null); // Innlogget deltaker i studio
+  const [studioLoginNavn, setStudioLoginNavn] = useState('');
+  const [studioLoginPin, setStudioLoginPin] = useState('');
+  const [studioLoginError, setStudioLoginError] = useState('');
+  const chatEndRef = useRef(null);
 
   useEffect(() => {
     const init = {};
@@ -921,11 +932,39 @@ export default function OLTippingApp() {
       console.error('Feil ved lasting av synlighet:', error);
     });
     
+    // Lytt til live feed fra Firebase
+    const unsubscribeLiveFeed = onSnapshot(collection(db, 'livefeed'), (snapshot) => {
+      const posts = [];
+      snapshot.forEach((doc) => {
+        posts.push({ id: doc.id, ...doc.data() });
+      });
+      // Sorter etter tidspunkt, nyeste først
+      posts.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+      setLiveFeed(posts);
+    }, (error) => {
+      console.error('Feil ved lasting av live feed:', error);
+    });
+    
+    // Lytt til chat fra Firebase
+    const unsubscribeChat = onSnapshot(collection(db, 'chat'), (snapshot) => {
+      const messages = [];
+      snapshot.forEach((doc) => {
+        messages.push({ id: doc.id, ...doc.data() });
+      });
+      // Sorter etter tidspunkt, eldste først
+      messages.sort((a, b) => (a.timestamp || 0) - (b.timestamp || 0));
+      setChatMessages(messages);
+    }, (error) => {
+      console.error('Feil ved lasting av chat:', error);
+    });
+    
     // Cleanup listeners når komponenten unmountes
     return () => {
       unsubscribeTips();
       unsubscribeResultater();
       unsubscribeSynlighet();
+      unsubscribeLiveFeed();
+      unsubscribeChat();
     };
   }, []);
 
@@ -990,6 +1029,74 @@ export default function OLTippingApp() {
     } catch (e) {
       console.error('Feil ved oppdatering av navn:', e);
       return false;
+    }
+  };
+
+  // OL-Studio funksjoner
+  const sendChatMessage = async () => {
+    if (!newChatMessage.trim() || !studioLoggedIn) return;
+    try {
+      const msgId = Date.now().toString();
+      await setDoc(doc(db, 'chat', msgId), {
+        id: msgId,
+        navn: studioLoggedIn.navn,
+        message: newChatMessage.trim(),
+        timestamp: Date.now(),
+        time: new Date().toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' })
+      });
+      setNewChatMessage('');
+      // Scroll til bunnen
+      setTimeout(() => chatEndRef.current?.scrollIntoView({ behavior: 'smooth' }), 100);
+    } catch (e) {
+      console.error('Feil ved sending av melding:', e);
+    }
+  };
+
+  const sendLiveFeedPost = async () => {
+    if (!newLiveFeedPost.trim() || !isAdminLoggedIn) return;
+    try {
+      const postId = Date.now().toString();
+      await setDoc(doc(db, 'livefeed', postId), {
+        id: postId,
+        content: newLiveFeedPost.trim(),
+        timestamp: Date.now(),
+        time: new Date().toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' }),
+        date: new Date().toLocaleDateString('no-NO', { day: 'numeric', month: 'short' })
+      });
+      setNewLiveFeedPost('');
+    } catch (e) {
+      console.error('Feil ved posting:', e);
+    }
+  };
+
+  const deleteLiveFeedPost = async (postId) => {
+    try {
+      await deleteDoc(doc(db, 'livefeed', postId));
+    } catch (e) {
+      console.error('Feil ved sletting:', e);
+    }
+  };
+
+  const deleteChatMessage = async (msgId) => {
+    try {
+      await deleteDoc(doc(db, 'chat', msgId));
+    } catch (e) {
+      console.error('Feil ved sletting:', e);
+    }
+  };
+
+  const handleStudioLogin = () => {
+    const deltaker = alleTips.find(d => 
+      d.navn.toLowerCase() === studioLoginNavn.toLowerCase() && 
+      (d.pin === studioLoginPin || genererPin(d.navn) === studioLoginPin)
+    );
+    if (deltaker) {
+      setStudioLoggedIn(deltaker);
+      setStudioLoginError('');
+      setStudioLoginNavn('');
+      setStudioLoginPin('');
+    } else {
+      setStudioLoginError('Feil lagnavn eller PIN');
     }
   };
 
@@ -1282,6 +1389,7 @@ export default function OLTippingApp() {
         <div className="max-w-6xl mx-auto px-4 flex gap-1 py-2 overflow-x-auto">
           {[
             { id: 'info', label: 'Info', icon: AlertCircle },
+            { id: 'studio', label: 'OL-Studio', icon: Radio },
             { id: 'tipping', label: 'Tipping / Endre', icon: Send },
             { id: 'tips', label: 'Tips dag for dag', icon: Users },
             { id: 'leaderboard', label: 'Resultater', icon: Trophy },
@@ -1521,6 +1629,221 @@ export default function OLTippingApp() {
                   </button>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* OL-STUDIO */}
+        {view === 'studio' && (
+          <div className="space-y-4">
+            <div className="text-center mb-4">
+              <h2 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-400 to-orange-400 flex items-center justify-center gap-2">
+                <Radio className="w-6 h-6 text-red-400 animate-pulse" />
+                OL-STUDIO
+                <Radio className="w-6 h-6 text-red-400 animate-pulse" />
+              </h2>
+              <p className="text-sm text-slate-400">Live oppdateringer og chat</p>
+            </div>
+
+            {/* Live Feed fra Admin */}
+            <div className="bg-gradient-to-br from-red-900/30 to-orange-900/30 rounded-xl p-4 border border-red-500/30">
+              <h3 className="font-bold text-red-400 mb-3 flex items-center gap-2">
+                <Radio className="w-4 h-4" /> Live Oppdateringer
+              </h3>
+              
+              {/* Admin: Ny post */}
+              {isAdminLoggedIn && (
+                <div className="mb-4 p-3 bg-slate-800/50 rounded-lg border border-red-500/30">
+                  <textarea
+                    value={newLiveFeedPost}
+                    onChange={(e) => setNewLiveFeedPost(e.target.value)}
+                    placeholder="Skriv en oppdatering... (støtter emojis! 🥇🎿⛷️)"
+                    className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm resize-none"
+                    rows={2}
+                  />
+                  <div className="flex justify-end mt-2">
+                    <button
+                      onClick={sendLiveFeedPost}
+                      disabled={!newLiveFeedPost.trim()}
+                      className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold rounded-lg text-sm flex items-center gap-2"
+                    >
+                      <Send className="w-4 h-4" /> Publiser
+                    </button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Feed */}
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {liveFeed.length === 0 ? (
+                  <p className="text-slate-500 text-center py-4">Ingen oppdateringer ennå</p>
+                ) : (
+                  liveFeed.map(post => (
+                    <div key={post.id} className="bg-slate-800/70 rounded-lg p-3 border-l-4 border-red-500">
+                      <div className="flex justify-between items-start">
+                        <p className="text-white whitespace-pre-wrap">{post.content}</p>
+                        {isAdminLoggedIn && (
+                          <button
+                            onClick={() => deleteLiveFeedPost(post.id)}
+                            className="text-red-400 hover:text-red-300 p-1"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-xs text-slate-500 mt-2">{post.date} kl. {post.time}</p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            {/* Chat */}
+            <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+              <h3 className="font-bold text-cyan-400 mb-3 flex items-center gap-2">
+                <MessageCircle className="w-4 h-4" /> Chat
+              </h3>
+              
+              {/* Innlogging for chat */}
+              {!studioLoggedIn && !isAdminLoggedIn ? (
+                <div className="bg-slate-900/50 rounded-lg p-4">
+                  <p className="text-slate-300 text-sm mb-3">Logg inn for å delta i chatten:</p>
+                  <div className="space-y-2">
+                    <input
+                      type="text"
+                      value={studioLoginNavn}
+                      onChange={(e) => setStudioLoginNavn(e.target.value)}
+                      placeholder="Lagnavn..."
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm"
+                    />
+                    <input
+                      type="password"
+                      value={studioLoginPin}
+                      onChange={(e) => setStudioLoginPin(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleStudioLogin()}
+                      placeholder="PIN-kode..."
+                      className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm"
+                    />
+                    {studioLoginError && <p className="text-red-400 text-xs">{studioLoginError}</p>}
+                    <button
+                      onClick={handleStudioLogin}
+                      className="w-full py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg text-sm"
+                    >
+                      Logg inn
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  {/* Innlogget info */}
+                  <div className="flex items-center justify-between mb-3 p-2 bg-green-900/30 rounded-lg">
+                    <span className="text-green-400 text-sm">
+                      💬 Logget inn som: <strong>{isAdminLoggedIn ? 'Admin' : studioLoggedIn?.navn}</strong>
+                    </span>
+                    {!isAdminLoggedIn && (
+                      <button
+                        onClick={() => setStudioLoggedIn(null)}
+                        className="text-red-400 text-xs hover:text-red-300"
+                      >
+                        Logg ut
+                      </button>
+                    )}
+                  </div>
+                  
+                  {/* Meldinger */}
+                  <div className="space-y-2 max-h-80 overflow-y-auto mb-3 p-2 bg-slate-900/50 rounded-lg">
+                    {chatMessages.length === 0 ? (
+                      <p className="text-slate-500 text-center py-4 text-sm">Ingen meldinger ennå. Vær den første!</p>
+                    ) : (
+                      chatMessages.map(msg => (
+                        <div key={msg.id} className={`p-2 rounded-lg ${
+                          msg.navn === (studioLoggedIn?.navn || 'Admin') 
+                            ? 'bg-cyan-900/30 ml-8' 
+                            : 'bg-slate-800/50 mr-8'
+                        }`}>
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <span className="font-semibold text-cyan-300 text-sm">{msg.navn}</span>
+                              <span className="text-slate-500 text-xs ml-2">{msg.time}</span>
+                            </div>
+                            {isAdminLoggedIn && (
+                              <button
+                                onClick={() => deleteChatMessage(msg.id)}
+                                className="text-red-400 hover:text-red-300 p-0.5"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                          <p className="text-white text-sm mt-1">{msg.message}</p>
+                        </div>
+                      ))
+                    )}
+                    <div ref={chatEndRef} />
+                  </div>
+                  
+                  {/* Send melding */}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={newChatMessage}
+                      onChange={(e) => setNewChatMessage(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && sendChatMessage()}
+                      placeholder="Skriv en melding..."
+                      className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm"
+                    />
+                    <button
+                      onClick={sendChatMessage}
+                      disabled={!newChatMessage.trim()}
+                      className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold rounded-lg"
+                    >
+                      <Send className="w-4 h-4" />
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+
+            {/* Dagens program (quick info) */}
+            <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+              <h3 className="font-bold text-yellow-400 mb-3 flex items-center gap-2">
+                <Calendar className="w-4 h-4" /> Dagens øvelser
+              </h3>
+              {(() => {
+                // Finn dagens øvelser basert på dato
+                const idag = new Date();
+                const dagNr = Math.ceil((idag - new Date('2026-02-06')) / (1000 * 60 * 60 * 24)) + 1;
+                const dagensØvelser = øvelserPerDag[dagNr] || [];
+                
+                if (dagensØvelser.length === 0) {
+                  return <p className="text-slate-500 text-sm">Ingen øvelser i dag</p>;
+                }
+                
+                return (
+                  <div className="space-y-2">
+                    {dagensØvelser.map(ø => {
+                      const harResultat = resultater[ø.idx]?.some(r => r?.trim());
+                      return (
+                        <div key={ø.idx} className={`flex items-center justify-between p-2 rounded-lg ${
+                          harResultat ? 'bg-green-900/30' : 'bg-slate-700/50'
+                        }`}>
+                          <div>
+                            <span className={`text-xs px-2 py-0.5 rounded mr-2 ${SPORT_COLORS[ø.sport]?.bg} text-white`}>
+                              {ø.sport.toUpperCase()}
+                            </span>
+                            <span className="text-white text-sm">{ø.øvelse}</span>
+                          </div>
+                          {harResultat ? (
+                            <span className="text-green-400 text-xs">✓ Ferdig</span>
+                          ) : (
+                            <span className="text-yellow-400 text-xs">⏳</span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
           </div>
         )}
