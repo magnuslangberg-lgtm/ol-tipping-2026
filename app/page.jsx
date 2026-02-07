@@ -316,91 +316,91 @@ const ADMIN_PASSWORD = "OL2026Admin";
 // ============================================
 const OL_PROGRAM = [
   // DAG 1 - Lørdag 7. februar
-  { dag: 1, dato: "Lør 7. feb", øvelse: "Langrenn, 20 km skiathlon - kvinner", type: "individuell", sport: "langrenn" },
-  { dag: 1, dato: "Lør 7. feb", øvelse: "Hopp, normal bakke - kvinner", type: "individuell", sport: "hopp" },
-  { dag: 1, dato: "Lør 7. feb", øvelse: "Alpint, utfor - menn", type: "individuell", sport: "alpint" },
-  { dag: 1, dato: "Lør 7. feb", øvelse: "Skøyter, 3000m - kvinner", type: "individuell", sport: "skøyter" },
-  { dag: 1, dato: "Lør 7. feb", øvelse: "Snowboard, big air - menn", type: "individuell", sport: "snowboard" },
+  { dag: 1, dato: "Lør 7. feb", tid: "09:30", øvelse: "Langrenn, 20 km skiathlon - kvinner", type: "individuell", sport: "langrenn" },
+  { dag: 1, dato: "Lør 7. feb", tid: "12:00", øvelse: "Hopp, normal bakke - kvinner", type: "individuell", sport: "hopp" },
+  { dag: 1, dato: "Lør 7. feb", tid: "11:00", øvelse: "Alpint, utfor - menn", type: "individuell", sport: "alpint" },
+  { dag: 1, dato: "Lør 7. feb", tid: "15:00", øvelse: "Skøyter, 3000m - kvinner", type: "individuell", sport: "skøyter" },
+  { dag: 1, dato: "Lør 7. feb", tid: "13:30", øvelse: "Snowboard, big air - menn", type: "individuell", sport: "snowboard" },
   
   // DAG 2 - Søndag 8. februar
-  { dag: 2, dato: "Søn 8. feb", øvelse: "Langrenn, 20 km skiathlon - menn", type: "individuell", sport: "langrenn" },
-  { dag: 2, dato: "Søn 8. feb", øvelse: "Skiskyting, mixed stafett", type: "lag", sport: "skiskyting" },
-  { dag: 2, dato: "Søn 8. feb", øvelse: "Alpint, utfor - kvinner", type: "individuell", sport: "alpint" },
-  { dag: 2, dato: "Søn 8. feb", øvelse: "Skøyter, 5000m - menn", type: "individuell", sport: "skøyter" },
+  { dag: 2, dato: "Søn 8. feb", tid: "09:30", øvelse: "Langrenn, 20 km skiathlon - menn", type: "individuell", sport: "langrenn" },
+  { dag: 2, dato: "Søn 8. feb", tid: "14:45", øvelse: "Skiskyting, mixed stafett", type: "lag", sport: "skiskyting" },
+  { dag: 2, dato: "Søn 8. feb", tid: "11:00", øvelse: "Alpint, utfor - kvinner", type: "individuell", sport: "alpint" },
+  { dag: 2, dato: "Søn 8. feb", tid: "16:00", øvelse: "Skøyter, 5000m - menn", type: "individuell", sport: "skøyter" },
   
   // DAG 3 - Mandag 9. februar
-  { dag: 3, dato: "Man 9. feb", øvelse: "Alpint, lagkombinasjon - menn", type: "lag", sport: "alpint" },
-  { dag: 3, dato: "Man 9. feb", øvelse: "Hopp, normal bakke - menn", type: "individuell", sport: "hopp" },
-  { dag: 3, dato: "Man 9. feb", øvelse: "Freeski, slopestyle - menn", type: "individuell", sport: "freeski" },
+  { dag: 3, dato: "Man 9. feb", tid: "10:00", øvelse: "Alpint, lagkombinasjon - menn", type: "lag", sport: "alpint" },
+  { dag: 3, dato: "Man 9. feb", tid: "18:30", øvelse: "Hopp, normal bakke - menn", type: "individuell", sport: "hopp" },
+  { dag: 3, dato: "Man 9. feb", tid: "12:00", øvelse: "Freeski, slopestyle - menn", type: "individuell", sport: "freeski" },
   
   // DAG 4 - Tirsdag 10. februar
-  { dag: 4, dato: "Tir 10. feb", øvelse: "Alpint, lagkombinasjon - kvinner", type: "lag", sport: "alpint" },
-  { dag: 4, dato: "Tir 10. feb", øvelse: "Langrenn, sprint - kvinner", type: "individuell", sport: "langrenn" },
-  { dag: 4, dato: "Tir 10. feb", øvelse: "Langrenn, sprint - menn", type: "individuell", sport: "langrenn" },
-  { dag: 4, dato: "Tir 10. feb", øvelse: "Skiskyting, 20 km - menn", type: "individuell", sport: "skiskyting" },
-  { dag: 4, dato: "Tir 10. feb", øvelse: "Hopp, lagkonkurranse mixed", type: "lag", sport: "hopp" },
+  { dag: 4, dato: "Tir 10. feb", tid: "10:00", øvelse: "Alpint, lagkombinasjon - kvinner", type: "lag", sport: "alpint" },
+  { dag: 4, dato: "Tir 10. feb", tid: "12:00", øvelse: "Langrenn, sprint - kvinner", type: "individuell", sport: "langrenn" },
+  { dag: 4, dato: "Tir 10. feb", tid: "14:30", øvelse: "Langrenn, sprint - menn", type: "individuell", sport: "langrenn" },
+  { dag: 4, dato: "Tir 10. feb", tid: "14:30", øvelse: "Skiskyting, 20 km - menn", type: "individuell", sport: "skiskyting" },
+  { dag: 4, dato: "Tir 10. feb", tid: "18:00", øvelse: "Hopp, lagkonkurranse mixed", type: "lag", sport: "hopp" },
   
   // DAG 5 - Onsdag 11. februar
-  { dag: 5, dato: "Ons 11. feb", øvelse: "Alpint, super-G - menn", type: "individuell", sport: "alpint" },
-  { dag: 5, dato: "Ons 11. feb", øvelse: "Skiskyting, 15 km - kvinner", type: "individuell", sport: "skiskyting" },
-  { dag: 5, dato: "Ons 11. feb", øvelse: "Kombinert, normal bakke/10 km - menn", type: "individuell", sport: "kombinert" },
+  { dag: 5, dato: "Ons 11. feb", tid: "11:00", øvelse: "Alpint, super-G - menn", type: "individuell", sport: "alpint" },
+  { dag: 5, dato: "Ons 11. feb", tid: "14:30", øvelse: "Skiskyting, 15 km - kvinner", type: "individuell", sport: "skiskyting" },
+  { dag: 5, dato: "Ons 11. feb", tid: "10:00", øvelse: "Kombinert, normal bakke/10 km - menn", type: "individuell", sport: "kombinert" },
   
   // DAG 6 - Torsdag 12. februar
-  { dag: 6, dato: "Tor 12. feb", øvelse: "Alpint, super-G - kvinner", type: "individuell", sport: "alpint" },
-  { dag: 6, dato: "Tor 12. feb", øvelse: "Langrenn, 10 km fri - kvinner", type: "individuell", sport: "langrenn" },
-  { dag: 6, dato: "Tor 12. feb", øvelse: "Snowboard, slopestyle - menn", type: "individuell", sport: "snowboard" },
+  { dag: 6, dato: "Tor 12. feb", tid: "11:00", øvelse: "Alpint, super-G - kvinner", type: "individuell", sport: "alpint" },
+  { dag: 6, dato: "Tor 12. feb", tid: "09:30", øvelse: "Langrenn, 10 km fri - kvinner", type: "individuell", sport: "langrenn" },
+  { dag: 6, dato: "Tor 12. feb", tid: "13:00", øvelse: "Snowboard, slopestyle - menn", type: "individuell", sport: "snowboard" },
   
   // DAG 7 - Fredag 13. februar
-  { dag: 7, dato: "Fre 13. feb", øvelse: "Skiskyting, 10 km sprint - menn", type: "individuell", sport: "skiskyting" },
-  { dag: 7, dato: "Fre 13. feb", øvelse: "Langrenn, 10 km fri - menn", type: "individuell", sport: "langrenn" },
-  { dag: 7, dato: "Fre 13. feb", øvelse: "Skøyter, 10000m - menn", type: "individuell", sport: "skøyter" },
+  { dag: 7, dato: "Fre 13. feb", tid: "14:30", øvelse: "Skiskyting, 10 km sprint - menn", type: "individuell", sport: "skiskyting" },
+  { dag: 7, dato: "Fre 13. feb", tid: "09:30", øvelse: "Langrenn, 10 km fri - menn", type: "individuell", sport: "langrenn" },
+  { dag: 7, dato: "Fre 13. feb", tid: "16:00", øvelse: "Skøyter, 10000m - menn", type: "individuell", sport: "skøyter" },
   
   // DAG 8 - Lørdag 14. februar
-  { dag: 8, dato: "Lør 14. feb", øvelse: "Alpint, storslalåm - menn", type: "individuell", sport: "alpint" },
-  { dag: 8, dato: "Lør 14. feb", øvelse: "Skiskyting, 7,5 km sprint - kvinner", type: "individuell", sport: "skiskyting" },
-  { dag: 8, dato: "Lør 14. feb", øvelse: "Langrenn, stafett - kvinner", type: "lag", sport: "langrenn" },
-  { dag: 8, dato: "Lør 14. feb", øvelse: "Hopp, stor bakke - menn", type: "individuell", sport: "hopp" },
+  { dag: 8, dato: "Lør 14. feb", tid: "09:30", øvelse: "Alpint, storslalåm - menn", type: "individuell", sport: "alpint" },
+  { dag: 8, dato: "Lør 14. feb", tid: "14:30", øvelse: "Skiskyting, 7,5 km sprint - kvinner", type: "individuell", sport: "skiskyting" },
+  { dag: 8, dato: "Lør 14. feb", tid: "09:00", øvelse: "Langrenn, stafett - kvinner", type: "lag", sport: "langrenn" },
+  { dag: 8, dato: "Lør 14. feb", tid: "18:00", øvelse: "Hopp, stor bakke - menn", type: "individuell", sport: "hopp" },
   
   // DAG 9 - Søndag 15. februar
-  { dag: 9, dato: "Søn 15. feb", øvelse: "Alpint, storslalåm - kvinner", type: "individuell", sport: "alpint" },
-  { dag: 9, dato: "Søn 15. feb", øvelse: "Skiskyting, 12,5 km jaktstart - menn", type: "individuell", sport: "skiskyting" },
-  { dag: 9, dato: "Søn 15. feb", øvelse: "Skiskyting, 10 km jaktstart - kvinner", type: "individuell", sport: "skiskyting" },
-  { dag: 9, dato: "Søn 15. feb", øvelse: "Langrenn, stafett - menn", type: "lag", sport: "langrenn" },
-  { dag: 9, dato: "Søn 15. feb", øvelse: "Hopp, stor bakke - kvinner", type: "individuell", sport: "hopp" },
+  { dag: 9, dato: "Søn 15. feb", tid: "09:30", øvelse: "Alpint, storslalåm - kvinner", type: "individuell", sport: "alpint" },
+  { dag: 9, dato: "Søn 15. feb", tid: "14:30", øvelse: "Skiskyting, 12,5 km jaktstart - menn", type: "individuell", sport: "skiskyting" },
+  { dag: 9, dato: "Søn 15. feb", tid: "17:00", øvelse: "Skiskyting, 10 km jaktstart - kvinner", type: "individuell", sport: "skiskyting" },
+  { dag: 9, dato: "Søn 15. feb", tid: "09:00", øvelse: "Langrenn, stafett - menn", type: "lag", sport: "langrenn" },
+  { dag: 9, dato: "Søn 15. feb", tid: "18:30", øvelse: "Hopp, stor bakke - kvinner", type: "individuell", sport: "hopp" },
   
   // DAG 10 - Mandag 16. februar
-  { dag: 10, dato: "Man 16. feb", øvelse: "Alpint, slalåm - menn", type: "individuell", sport: "alpint" },
-  { dag: 10, dato: "Man 16. feb", øvelse: "Hopp, lagkonkurranse stor bakke - menn", type: "lag", sport: "hopp" },
-  { dag: 10, dato: "Man 16. feb", øvelse: "Freeski, big air - menn", type: "individuell", sport: "freeski" },
+  { dag: 10, dato: "Man 16. feb", tid: "10:00", øvelse: "Alpint, slalåm - menn", type: "individuell", sport: "alpint" },
+  { dag: 10, dato: "Man 16. feb", tid: "18:00", øvelse: "Hopp, lagkonkurranse stor bakke - menn", type: "lag", sport: "hopp" },
+  { dag: 10, dato: "Man 16. feb", tid: "12:00", øvelse: "Freeski, big air - menn", type: "individuell", sport: "freeski" },
   
   // DAG 11 - Tirsdag 17. februar
-  { dag: 11, dato: "Tir 17. feb", øvelse: "Skiskyting, stafett - menn", type: "lag", sport: "skiskyting" },
+  { dag: 11, dato: "Tir 17. feb", tid: "14:30", øvelse: "Skiskyting, stafett - menn", type: "lag", sport: "skiskyting" },
   
   // DAG 12 - Onsdag 18. februar
-  { dag: 12, dato: "Ons 18. feb", øvelse: "Alpint, slalåm - kvinner", type: "individuell", sport: "alpint" },
-  { dag: 12, dato: "Ons 18. feb", øvelse: "Skiskyting, stafett - kvinner", type: "lag", sport: "skiskyting" },
-  { dag: 12, dato: "Ons 18. feb", øvelse: "Langrenn, lagsprint - kvinner", type: "lag", sport: "langrenn" },
-  { dag: 12, dato: "Ons 18. feb", øvelse: "Langrenn, lagsprint - menn", type: "lag", sport: "langrenn" },
+  { dag: 12, dato: "Ons 18. feb", tid: "10:00", øvelse: "Alpint, slalåm - kvinner", type: "individuell", sport: "alpint" },
+  { dag: 12, dato: "Ons 18. feb", tid: "14:30", øvelse: "Skiskyting, stafett - kvinner", type: "lag", sport: "skiskyting" },
+  { dag: 12, dato: "Ons 18. feb", tid: "11:00", øvelse: "Langrenn, lagsprint - kvinner", type: "lag", sport: "langrenn" },
+  { dag: 12, dato: "Ons 18. feb", tid: "13:30", øvelse: "Langrenn, lagsprint - menn", type: "lag", sport: "langrenn" },
   
   // DAG 13 - Torsdag 19. februar
-  { dag: 13, dato: "Tor 19. feb", øvelse: "Kombinert, stor bakke/10 km - menn", type: "individuell", sport: "kombinert" },
-  { dag: 13, dato: "Tor 19. feb", øvelse: "Skiskyting, 15 km fellesstart - menn", type: "individuell", sport: "skiskyting" },
-  { dag: 13, dato: "Tor 19. feb", øvelse: "Skøyter, 1500m - menn", type: "individuell", sport: "skøyter" },
-  { dag: 13, dato: "Tor 19. feb", øvelse: "Skøyter, 1500m - kvinner", type: "individuell", sport: "skøyter" },
+  { dag: 13, dato: "Tor 19. feb", tid: "10:00", øvelse: "Kombinert, stor bakke/10 km - menn", type: "individuell", sport: "kombinert" },
+  { dag: 13, dato: "Tor 19. feb", tid: "14:30", øvelse: "Skiskyting, 15 km fellesstart - menn", type: "individuell", sport: "skiskyting" },
+  { dag: 13, dato: "Tor 19. feb", tid: "15:00", øvelse: "Skøyter, 1500m - menn", type: "individuell", sport: "skøyter" },
+  { dag: 13, dato: "Tor 19. feb", tid: "17:30", øvelse: "Skøyter, 1500m - kvinner", type: "individuell", sport: "skøyter" },
   
   // DAG 14 - Fredag 20. februar
-  { dag: 14, dato: "Fre 20. feb", øvelse: "Kombinert, lagkonkurranse - menn", type: "lag", sport: "kombinert" },
-  { dag: 14, dato: "Fre 20. feb", øvelse: "Skiskyting, 12,5 km fellesstart - kvinner", type: "individuell", sport: "skiskyting" },
-  { dag: 14, dato: "Fre 20. feb", øvelse: "Skøyter, lagtempo - menn", type: "lag", sport: "skøyter" },
+  { dag: 14, dato: "Fre 20. feb", tid: "10:00", øvelse: "Kombinert, lagkonkurranse - menn", type: "lag", sport: "kombinert" },
+  { dag: 14, dato: "Fre 20. feb", tid: "14:30", øvelse: "Skiskyting, 12,5 km fellesstart - kvinner", type: "individuell", sport: "skiskyting" },
+  { dag: 14, dato: "Fre 20. feb", tid: "16:00", øvelse: "Skøyter, lagtempo - menn", type: "lag", sport: "skøyter" },
   
   // DAG 15 - Lørdag 21. februar
-  { dag: 15, dato: "Lør 21. feb", øvelse: "Langrenn, 50 km fellesstart - menn", type: "individuell", sport: "langrenn" },
-  { dag: 15, dato: "Lør 21. feb", øvelse: "Curling, finale - menn", type: "lag", sport: "curling" },
+  { dag: 15, dato: "Lør 21. feb", tid: "08:00", øvelse: "Langrenn, 50 km fellesstart - menn", type: "individuell", sport: "langrenn" },
+  { dag: 15, dato: "Lør 21. feb", tid: "14:00", øvelse: "Curling, finale - menn", type: "lag", sport: "curling" },
   
   // DAG 16 - Søndag 22. februar
-  { dag: 16, dato: "Søn 22. feb", øvelse: "Langrenn, 50 km fellesstart - kvinner", type: "individuell", sport: "langrenn" },
-  { dag: 16, dato: "Søn 22. feb", øvelse: "Curling, finale - kvinner", type: "lag", sport: "curling" },
-  { dag: 16, dato: "Søn 22. feb", øvelse: "Ishockey, finale - menn", type: "lag", sport: "ishockey" },
+  { dag: 16, dato: "Søn 22. feb", tid: "08:00", øvelse: "Langrenn, 50 km fellesstart - kvinner", type: "individuell", sport: "langrenn" },
+  { dag: 16, dato: "Søn 22. feb", tid: "09:00", øvelse: "Curling, finale - kvinner", type: "lag", sport: "curling" },
+  { dag: 16, dato: "Søn 22. feb", tid: "13:00", øvelse: "Ishockey, finale - menn", type: "lag", sport: "ishockey" },
 ];
 
 // ============================================
@@ -1685,6 +1685,7 @@ export default function OLTippingApp() {
                           harResultat ? 'bg-green-900/30' : 'bg-slate-700/50'
                         }`}>
                           <div>
+                            <span className="text-yellow-300 text-xs font-mono mr-2">{ø.tid}</span>
                             <span className={`text-xs px-2 py-0.5 rounded mr-2 ${SPORT_COLORS[ø.sport]?.bg} text-white`}>
                               {ø.sport.toUpperCase()}
                             </span>
@@ -1760,40 +1761,41 @@ export default function OLTippingApp() {
             <div className="bg-slate-800/50 rounded-xl p-4 border border-cyan-500/30">
               <h3 className="font-bold text-cyan-400 mb-3 flex items-center gap-2"><MessageCircle className="w-4 h-4" /> Chat</h3>
               
+              {/* Meldinger - synlig for alle */}
+              <div className="space-y-2 max-h-72 overflow-y-auto mb-3 p-2 bg-slate-900/50 rounded-lg">
+                {chatMessages.length === 0 ? (
+                  <p className="text-slate-500 text-center py-4 text-sm">Ingen meldinger ennå</p>
+                ) : (
+                  chatMessages.map(msg => (
+                    <div key={msg.id} className={`p-2 rounded-lg ${msg.navn === (studioLoggedIn?.navn || (isAdminLoggedIn ? 'Admin' : '')) ? 'bg-cyan-900/30 ml-8' : 'bg-slate-800/50 mr-8'}`}>
+                      <div className="flex justify-between items-start">
+                        <div><span className="font-semibold text-cyan-300 text-sm">{msg.navn}</span><span className="text-slate-500 text-xs ml-2">{msg.time}</span></div>
+                        {isAdminLoggedIn && <button onClick={() => deleteChatMessage(msg.id)} className="text-red-400 hover:text-red-300 p-0.5"><X className="w-3 h-3" /></button>}
+                      </div>
+                      <p className="text-white text-sm mt-1">{msg.message}</p>
+                    </div>
+                  ))
+                )}
+                <div ref={chatEndRef} />
+              </div>
+              
+              {/* Skrive-felt - krever innlogging */}
               {!studioLoggedIn && !isAdminLoggedIn ? (
-                <div className="bg-slate-900/50 rounded-lg p-4">
-                  <p className="text-slate-300 text-sm mb-3">Logg inn for å delta i chatten:</p>
-                  <div className="space-y-2">
-                    <input type="text" value={studioLoginNavn} onChange={(e) => setStudioLoginNavn(e.target.value)} placeholder="Lagnavn..." className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm" />
-                    <input type="password" value={studioLoginPin} onChange={(e) => setStudioLoginPin(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleStudioLogin()} placeholder="PIN-kode..." className="w-full px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm" />
-                    {studioLoginError && <p className="text-red-400 text-xs">{studioLoginError}</p>}
-                    <button onClick={handleStudioLogin} className="w-full py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg text-sm">Logg inn</button>
+                <div className="bg-slate-900/50 rounded-lg p-3">
+                  <p className="text-slate-400 text-sm mb-2">Logg inn for å skrive i chatten:</p>
+                  <div className="flex gap-2">
+                    <input type="text" value={studioLoginNavn} onChange={(e) => setStudioLoginNavn(e.target.value)} placeholder="Lagnavn..." className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm" />
+                    <input type="password" value={studioLoginPin} onChange={(e) => setStudioLoginPin(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleStudioLogin()} placeholder="PIN..." className="w-20 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm" />
+                    <button onClick={handleStudioLogin} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg text-sm">Logg inn</button>
                   </div>
+                  {studioLoginError && <p className="text-red-400 text-xs mt-1">{studioLoginError}</p>}
                 </div>
               ) : (
                 <>
-                  <div className="flex items-center justify-between mb-3 p-2 bg-green-900/30 rounded-lg">
-                    <span className="text-green-400 text-sm">💬 Logget inn som: <strong>{isAdminLoggedIn ? 'Admin' : studioLoggedIn?.navn}</strong></span>
+                  <div className="flex items-center justify-between mb-2 p-2 bg-green-900/30 rounded-lg">
+                    <span className="text-green-400 text-sm">💬 <strong>{isAdminLoggedIn ? 'Admin' : studioLoggedIn?.navn}</strong></span>
                     {!isAdminLoggedIn && <button onClick={() => setStudioLoggedIn(null)} className="text-red-400 text-xs hover:text-red-300">Logg ut</button>}
                   </div>
-                  
-                  <div className="space-y-2 max-h-72 overflow-y-auto mb-3 p-2 bg-slate-900/50 rounded-lg">
-                    {chatMessages.length === 0 ? (
-                      <p className="text-slate-500 text-center py-4 text-sm">Ingen meldinger ennå. Vær den første!</p>
-                    ) : (
-                      chatMessages.map(msg => (
-                        <div key={msg.id} className={`p-2 rounded-lg ${msg.navn === (studioLoggedIn?.navn || 'Admin') ? 'bg-cyan-900/30 ml-8' : 'bg-slate-800/50 mr-8'}`}>
-                          <div className="flex justify-between items-start">
-                            <div><span className="font-semibold text-cyan-300 text-sm">{msg.navn}</span><span className="text-slate-500 text-xs ml-2">{msg.time}</span></div>
-                            {isAdminLoggedIn && <button onClick={() => deleteChatMessage(msg.id)} className="text-red-400 hover:text-red-300 p-0.5"><X className="w-3 h-3" /></button>}
-                          </div>
-                          <p className="text-white text-sm mt-1">{msg.message}</p>
-                        </div>
-                      ))
-                    )}
-                    <div ref={chatEndRef} />
-                  </div>
-                  
                   <div className="flex gap-2">
                     <input type="text" value={newChatMessage} onChange={(e) => setNewChatMessage(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && sendChatMessage()} placeholder="Skriv en melding..." className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm" />
                     <button onClick={sendChatMessage} disabled={!newChatMessage.trim()} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-700 disabled:text-slate-500 text-white font-semibold rounded-lg"><Send className="w-4 h-4" /></button>
