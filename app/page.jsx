@@ -1389,8 +1389,8 @@ export default function OLTippingApp() {
         <div className="max-w-6xl mx-auto px-4 flex gap-1 py-2 overflow-x-auto">
           {[
             { id: 'info', label: 'Info', icon: AlertCircle },
-            { id: 'studio', label: 'OL-Studio', icon: Radio },
             { id: 'tipping', label: 'Tipping / Endre', icon: Send },
+            { id: 'studio', label: 'OL-Studio', icon: Radio },
             { id: 'tips', label: 'Tips dag for dag', icon: Users },
             { id: 'leaderboard', label: 'Resultater', icon: Trophy },
             { id: 'admin', label: 'Admin', icon: Lock },
@@ -1811,16 +1811,38 @@ export default function OLTippingApp() {
               </h3>
               {(() => {
                 // Finn dagens øvelser basert på dato
+                // OL starter 7. februar 2026 (dag 1)
                 const idag = new Date();
-                const dagNr = Math.ceil((idag - new Date('2026-02-06')) / (1000 * 60 * 60 * 24)) + 1;
+                const olStart = new Date('2026-02-07');
+                olStart.setHours(0, 0, 0, 0);
+                idag.setHours(0, 0, 0, 0);
+                const dagNr = Math.floor((idag - olStart) / (1000 * 60 * 60 * 24)) + 1;
                 const dagensØvelser = øvelserPerDag[dagNr] || [];
                 
+                // Vis også hvilken dag det er
+                const dagInfo = dagNr >= 1 && dagNr <= 16 ? `Dag ${dagNr}` : (dagNr < 1 ? 'OL har ikke startet' : 'OL er ferdig');
+                
+                if (dagNr < 1 || dagNr > 16) {
+                  return <p className="text-slate-500 text-sm">{dagInfo}</p>;
+                }
+                
                 if (dagensØvelser.length === 0) {
-                  return <p className="text-slate-500 text-sm">Ingen øvelser i dag</p>;
+                  return <p className="text-slate-500 text-sm">Ingen øvelser på dag {dagNr}</p>;
                 }
                 
                 return (
                   <div className="space-y-2">
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-sm text-slate-300">📅 Dag {dagNr} - {dagensØvelser[0]?.dato}</p>
+                      <a 
+                        href="https://tv.nrk.no/programmer/ol" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-xs px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-full font-semibold flex items-center gap-1"
+                      >
+                        📺 Se Live på NRK
+                      </a>
+                    </div>
                     {dagensØvelser.map(ø => {
                       const harResultat = resultater[ø.idx]?.some(r => r?.trim());
                       return (
