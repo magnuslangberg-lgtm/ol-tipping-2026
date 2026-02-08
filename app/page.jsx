@@ -316,6 +316,7 @@ const ADMIN_PASSWORD = "OL2026Admin";
 // ============================================
 const OL_PROGRAM = [
   // DAG 1 - Lørdag 7. februar
+  { dag: 1, dato: "Lør 7. feb", tid: "12:30", øvelse: "Langrenn, 20 km skiathlon - kvinner", type: "individuell", sport: "langrenn" },
   { dag: 1, dato: "Lør 7. feb", tid: "12:00", øvelse: "Hopp, normal bakke - kvinner", type: "individuell", sport: "hopp" },
   { dag: 1, dato: "Lør 7. feb", tid: "11:00", øvelse: "Alpint, utfor - menn", type: "individuell", sport: "alpint" },
   { dag: 1, dato: "Lør 7. feb", tid: "15:00", øvelse: "Skøyter, 3000m - kvinner", type: "individuell", sport: "skøyter" },
