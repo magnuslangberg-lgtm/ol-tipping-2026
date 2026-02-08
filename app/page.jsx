@@ -1290,6 +1290,36 @@ export default function OLTippingApp() {
     return unknown;
   };
 
+  // Beregn faktisk plassering med hensyn til delte plasser
+  // Returnerer array med plassering for hver posisjon, f.eks. [1,2,3,4,4] hvis 4. plass er delt
+  const getPlasseringerMedDelt = (øvelseIdx) => {
+    const delt = deltePlasser[øvelseIdx] || [];
+    const plasseringer = [];
+    let currentPlass = 1;
+    
+    for (let i = 0; i < 5; i++) {
+      plasseringer.push(currentPlass);
+      // Hvis denne plassen IKKE er delt, øk til neste
+      // Hvis den ER delt, behold samme plassering for neste
+      if (!delt.includes(currentPlass)) {
+        currentPlass++;
+      } else {
+        // Etter en delt plass, hopp over neste nummer
+        currentPlass += 2;
+      }
+    }
+    return plasseringer;
+  };
+
+  // Formater resultat-streng med delte plasser
+  const formaterResultatMedDelt = (øvelseIdx, type) => {
+    const res = resultater[øvelseIdx];
+    if (!res) return '';
+    const plasseringer = getPlasseringerMedDelt(øvelseIdx);
+    const antall = type === 'individuell' ? 5 : 3;
+    return res.slice(0, antall).map((r, i) => `${plasseringer[i]}. ${r || '-'}`).join(' | ');
+  };
+
   // Beregn poeng
   // Beregn poeng for en deltaker, eventuelt filtrert på dag
   const beregnPoeng = (deltaker, filterDag = null) => {
@@ -1402,6 +1432,20 @@ export default function OLTippingApp() {
     gullBonus: beregnGullBonus(d),
     poeng: beregnPoeng(d) + beregnGullBonus(d)
   })).sort((a, b) => b.poeng - a.poeng);
+  
+  // Beregn plassering med delte plasser for leaderboard
+  const getLeaderboardPlassering = (sortedList, idx) => {
+    if (idx === 0) return { plass: 1, delt: false };
+    const currentPoeng = sortedList[idx].poeng;
+    // Finn første person med samme poeng
+    let førsteMedSammePoeng = idx;
+    while (førsteMedSammePoeng > 0 && sortedList[førsteMedSammePoeng - 1].poeng === currentPoeng) {
+      førsteMedSammePoeng--;
+    }
+    const plass = førsteMedSammePoeng + 1;
+    const delt = idx !== førsteMedSammePoeng;
+    return { plass, delt };
+  };
   
   // Leaderboard for en spesifikk dag
   const getLeaderboardForDay = (dag) => {
@@ -2567,26 +2611,27 @@ export default function OLTippingApp() {
               <p className="text-center text-slate-400 py-8">Ingen tips ennå</p>
             ) : (
               <div className="space-y-2">
-                {(leaderboardView === 'total' ? leaderboard : getLeaderboardForDay(leaderboardView)).map((d, idx) => {
+                {(leaderboardView === 'total' ? leaderboard : getLeaderboardForDay(leaderboardView)).map((d, idx, arr) => {
                   const isExpanded = expandedLeaderboardDeltaker === d.id;
                   const poengPerDag = beregnPoengPerDag(d);
+                  const { plass, delt } = getLeaderboardPlassering(arr, idx);
                   
                   return (
                     <div key={d.id} className={`rounded-xl border overflow-hidden ${
-                      idx === 0 ? 'bg-yellow-900/30 border-yellow-500/50' :
-                      idx === 1 ? 'bg-slate-700/30 border-slate-400/50' :
-                      idx === 2 ? 'bg-orange-900/30 border-orange-600/50' :
+                      plass === 1 ? 'bg-yellow-900/30 border-yellow-500/50' :
+                      plass === 2 ? 'bg-slate-700/30 border-slate-400/50' :
+                      plass === 3 ? 'bg-orange-900/30 border-orange-600/50' :
                       'bg-slate-800/50 border-slate-700'
                     }`}>
                       <button
                         onClick={() => setExpandedLeaderboardDeltaker(isExpanded ? null : d.id)}
                         className="w-full flex items-center gap-3 p-3"
                       >
-                        <div className={`w-9 h-9 flex items-center justify-center rounded-full font-black ${
-                          idx === 0 ? 'bg-yellow-500 text-yellow-900' :
-                          idx === 1 ? 'bg-slate-300 text-slate-700' :
-                          idx === 2 ? 'bg-orange-500 text-orange-900' : 'bg-slate-600 text-white'
-                        }`}>{idx + 1}</div>
+                        <div className={`w-9 h-9 flex items-center justify-center rounded-full font-black text-sm ${
+                          plass === 1 ? 'bg-yellow-500 text-yellow-900' :
+                          plass === 2 ? 'bg-slate-300 text-slate-700' :
+                          plass === 3 ? 'bg-orange-500 text-orange-900' : 'bg-slate-600 text-white'
+                        }`}>{delt ? '=' : ''}{plass}</div>
                         <div className="flex-1 text-left">
                           <h3 className="font-bold text-white">
                             {d.navn}
@@ -2680,7 +2725,7 @@ export default function OLTippingApp() {
                                           {hasResult && (
                                             <div className="mt-1 pt-1 border-t border-slate-700">
                                               <p className="text-xs text-slate-500">
-                                                Resultat: {resultater[ø.idx].slice(0, ø.type === 'individuell' ? 5 : 3).map((r, i) => `${i+1}. ${r || '-'}`).join(' | ')}
+                                                Resultat: {formaterResultatMedDelt(ø.idx, ø.type)}
                                               </p>
                                             </div>
                                           )}
