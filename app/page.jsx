@@ -1327,15 +1327,17 @@ export default function OLTippingApp() {
       if (filterDag !== null && ø.dag !== filterDag) return;
       const res = resultater[idx];
       if (!res || !deltaker.tips[idx]) return;
+      const plasseringer = getPlasseringerMedDelt(idx);
       deltaker.tips[idx].forEach((tip, tippPos) => {
         if (!tip?.trim()) return;
-        const { index: faktiskPos } = findBestMatch(tip, res);
-        if (faktiskPos === -1) return;
+        const { index: faktiskPosIndex } = findBestMatch(tip, res);
+        if (faktiskPosIndex === -1) return;
+        const faktiskPlass = plasseringer[faktiskPosIndex]; // 1-indeksert plassering
         if (ø.type === 'individuell') {
-          if (faktiskPos < 5) total += [5,4,3,2,1][faktiskPos];
-          if (faktiskPos < 3 && tippPos === faktiskPos) total += [5,3,1][faktiskPos];
+          if (faktiskPlass <= 5) total += [0,5,4,3,2,1][faktiskPlass]; // plass 1=5p, 2=4p, etc
+          if (faktiskPlass <= 3 && tippPos + 1 === faktiskPlass) total += [0,5,3,1][faktiskPlass];
         } else {
-          if (faktiskPos < 3 && tippPos === faktiskPos) total += [8,5,3][faktiskPos];
+          if (faktiskPlass <= 3 && tippPos + 1 === faktiskPlass) total += [0,8,5,3][faktiskPlass];
         }
       });
     });
@@ -1347,6 +1349,7 @@ export default function OLTippingApp() {
     const ø = OL_PROGRAM[øvelseIdx];
     const res = resultater[øvelseIdx];
     const tips = deltaker.tips?.[øvelseIdx];
+    const plasseringer = getPlasseringerMedDelt(øvelseIdx);
     
     // Hvis ingen tips, returner tom
     if (!tips || tips.length === 0) return { poeng: 0, detaljer: [] };
@@ -1374,16 +1377,17 @@ export default function OLTippingApp() {
         return;
       }
       
-      const { index: faktiskPos, name: matchedName } = findBestMatch(tip, res);
+      const { index: faktiskPosIndex, name: matchedName } = findBestMatch(tip, res);
       let øvelsePoeng = 0;
       let bonus = 0;
       
-      if (faktiskPos !== -1) {
+      if (faktiskPosIndex !== -1) {
+        const faktiskPlass = plasseringer[faktiskPosIndex]; // 1-indeksert plassering
         if (ø.type === 'individuell') {
-          if (faktiskPos < 5) øvelsePoeng = [5,4,3,2,1][faktiskPos];
-          if (faktiskPos < 3 && tippPos === faktiskPos) bonus = [5,3,1][faktiskPos];
+          if (faktiskPlass <= 5) øvelsePoeng = [0,5,4,3,2,1][faktiskPlass];
+          if (faktiskPlass <= 3 && tippPos + 1 === faktiskPlass) bonus = [0,5,3,1][faktiskPlass];
         } else {
-          if (faktiskPos < 3 && tippPos === faktiskPos) øvelsePoeng = [8,5,3][faktiskPos];
+          if (faktiskPlass <= 3 && tippPos + 1 === faktiskPlass) øvelsePoeng = [0,8,5,3][faktiskPlass];
         }
       }
       
@@ -1391,7 +1395,7 @@ export default function OLTippingApp() {
       detaljer.push({ 
         tip, 
         tippPos: tippPos + 1, 
-        faktiskPos: faktiskPos !== -1 ? faktiskPos + 1 : null,
+        faktiskPos: faktiskPosIndex !== -1 ? plasseringer[faktiskPosIndex] : null,
         matchedName,
         poeng: øvelsePoeng,
         bonus,
