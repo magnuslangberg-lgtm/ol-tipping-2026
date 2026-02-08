@@ -700,8 +700,7 @@ function fuzzyMatch(name1, name2) {
   const lastName1 = parts1[parts1.length - 1];
   const lastName2 = parts2[parts2.length - 1];
   
-  // NYTT: Sjekk for reverserte navn (Su Yiming vs Yiming Su)
-  // Sorter ordene og sammenlign
+  // Sjekk for reverserte navn (Su Yiming vs Yiming Su)
   const sorted1 = [...parts1].sort().join(' ');
   const sorted2 = [...parts2].sort().join(' ');
   if (sorted1 === sorted2) return { match: true, score: 0.95 };
@@ -710,6 +709,11 @@ function fuzzyMatch(name1, name2) {
   const normParts1 = n1.split(' ').sort().join(' ');
   const normParts2 = n2.split(' ').sort().join(' ');
   if (normParts1 === normParts2) return { match: true, score: 0.93 };
+  
+  // NYTT: Levenshtein på sorterte navn (fanger "Yilming Su" vs "Su Yiming")
+  const sortedDistance = levenshteinDistance(normParts1, normParts2);
+  const sortedSimilarity = 1 - (sortedDistance / Math.max(normParts1.length, normParts2.length));
+  if (sortedSimilarity >= 0.85) return { match: true, score: sortedSimilarity * 0.95 };
   
   // Hvis ett av navnene er bare etternavn, og det matcher
   if (parts1.length === 1 && lastName1.length > 2) {
@@ -1838,19 +1842,39 @@ export default function OLTippingApp() {
                             </summary>
                             <div className="px-3 pb-3">
                               {stats.length > 0 && (
-                                <div className="space-y-1 mb-3">
+                                <div className="space-y-2 mb-3">
                                   {stats.slice(0, 5).map(({ navn, total, posisjoner }, idx) => {
                                     const prosent = Math.round((total / alleTips.length) * 100);
                                     const medaljer = ['🥇', '🥈', '🥉'];
                                     return (
                                       <div key={navn} className="relative">
-                                        <div className="absolute inset-0 rounded bg-gradient-to-r from-cyan-600/40 to-cyan-600/10" style={{ width: `${(total / maxTips) * 100}%` }} />
-                                        <div className="relative flex items-center justify-between p-2 rounded">
-                                          <div className="flex items-center gap-2">
-                                            <span className="text-sm w-6">{idx < 3 ? medaljer[idx] : `#${idx + 1}`}</span>
-                                            <span className="font-semibold text-white text-sm">{navn}</span>
+                                        <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-cyan-600/30 to-transparent" style={{ width: `${(total / maxTips) * 100}%` }} />
+                                        <div className="relative p-2 rounded-lg border border-cyan-600/20">
+                                          <div className="flex items-center justify-between mb-1">
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-base">{idx < 3 ? medaljer[idx] : <span className="text-slate-400 text-sm">#{idx + 1}</span>}</span>
+                                              <span className="font-bold text-white">{navn}</span>
+                                            </div>
+                                            <span className="text-cyan-300 font-bold">{total}x <span className="text-slate-400 font-normal text-sm">({prosent}%)</span></span>
                                           </div>
-                                          <span className="text-cyan-300 font-bold text-sm">{total}x <span className="text-slate-400 font-normal">({prosent}%)</span></span>
+                                          <div className="flex gap-1 flex-wrap">
+                                            {[1, 2, 3, 4, 5].map(pos => {
+                                              const antall = posisjoner[pos] || 0;
+                                              if (antall === 0) return null;
+                                              const posColors = {
+                                                1: 'bg-yellow-500/80 text-yellow-100',
+                                                2: 'bg-slate-400/80 text-slate-100', 
+                                                3: 'bg-orange-600/80 text-orange-100',
+                                                4: 'bg-slate-600/80 text-slate-200',
+                                                5: 'bg-slate-700/80 text-slate-300'
+                                              };
+                                              return (
+                                                <span key={pos} className={`px-1.5 py-0.5 rounded text-xs font-semibold ${posColors[pos]}`}>
+                                                  {antall}x på {pos}.
+                                                </span>
+                                              );
+                                            })}
+                                          </div>
                                         </div>
                                       </div>
                                     );
