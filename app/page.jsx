@@ -1705,7 +1705,7 @@ export default function OLTippingApp() {
 
             {/* Live Feed banner øverst - viser festede innlegg */}
             {(liveFeed.filter(p => p.pinned).length > 0 || liveFeed.length > 0) && (
-              <div className="bg-gradient-to-r from-red-900/40 to-orange-900/40 rounded-lg border border-red-500/30">
+              <div className="bg-gradient-to-r from-cyan-900/40 to-slate-800/40 rounded-lg border border-cyan-500/30">
                 {/* Festede innlegg - alltid synlige */}
                 {liveFeed.filter(p => p.pinned).length > 0 && (
                   <div className="p-3 space-y-2">
@@ -1714,7 +1714,7 @@ export default function OLTippingApp() {
                         <Pin className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
                         <div className="flex-1 min-w-0">
                           <p className="text-white text-sm whitespace-pre-wrap line-clamp-3">{post.content}</p>
-                          <p className="text-xs text-yellow-400/70 mt-1">{post.author || 'Admin'} • {post.date} {post.time}</p>
+                          <p className="text-xs text-cyan-400/70 mt-1">{post.author || 'Admin'} • {post.date} {post.time}</p>
                         </div>
                         {isAdminLoggedIn && (
                           <div className="flex gap-1 flex-shrink-0">
@@ -1728,19 +1728,26 @@ export default function OLTippingApp() {
                   </div>
                 )}
                 
-                {/* Resten av feed - collapsed */}
+                {/* Nyeste innlegg preview + collapsed resten */}
                 {liveFeed.filter(p => !p.pinned).length > 0 && (
                   <details className="group">
-                    <summary className="p-3 cursor-pointer flex items-center justify-between border-t border-red-500/20">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                        <span className="text-white text-sm">Flere oppdateringer</span>
-                        <span className="bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full">{liveFeed.filter(p => !p.pinned).length}</span>
+                    <summary className={`p-3 cursor-pointer ${liveFeed.filter(p => p.pinned).length > 0 ? 'border-t border-cyan-500/20' : ''}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          {/* Vis nyeste innlegg som preview */}
+                          <p className="text-white text-sm whitespace-pre-wrap line-clamp-4">{liveFeed.filter(p => !p.pinned)[0]?.content}</p>
+                          <p className="text-xs text-cyan-400/70 mt-1">
+                            {liveFeed.filter(p => !p.pinned)[0]?.author || 'Anonym'} • {liveFeed.filter(p => !p.pinned)[0]?.time}
+                            {liveFeed.filter(p => !p.pinned).length > 1 && (
+                              <span className="ml-2 text-cyan-300">+ {liveFeed.filter(p => !p.pinned).length - 1} flere meldinger</span>
+                            )}
+                          </p>
+                        </div>
+                        <ChevronDown className="w-4 h-4 text-cyan-400 group-open:rotate-180 transition-transform flex-shrink-0 mt-1" />
                       </div>
-                      <ChevronDown className="w-4 h-4 text-red-400 group-open:rotate-180 transition-transform" />
                     </summary>
-                    <div className="px-3 pb-3 space-y-2 max-h-48 overflow-y-auto">
-                      {liveFeed.filter(p => !p.pinned).slice(0, 10).map(post => {
+                    <div className="px-3 pb-3 space-y-2 max-h-48 overflow-y-auto border-t border-cyan-500/20 mt-2 pt-2">
+                      {liveFeed.filter(p => !p.pinned).slice(1, 15).map(post => {
                         const currentUserId = isAdminLoggedIn ? 'admin' : (studioLoggedIn?.id || loggedInDeltaker?.id);
                         const canEdit = isAdminLoggedIn || post.authorId === currentUserId;
                         
@@ -1765,14 +1772,6 @@ export default function OLTippingApp() {
                       })}
                     </div>
                   </details>
-                )}
-                
-                {/* Kun festede og ingen andre - vis bare festede */}
-                {liveFeed.filter(p => p.pinned).length === 0 && liveFeed.length > 0 && (
-                  <div className="p-3 flex items-center gap-2 text-slate-400 text-sm">
-                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                    <span>{liveFeed.length} melding{liveFeed.length > 1 ? 'er' : ''} i chatten</span>
-                  </div>
                 )}
               </div>
             )}
