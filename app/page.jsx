@@ -908,6 +908,7 @@ export default function OLTippingApp() {
   const [showMobileChat, setShowMobileChat] = useState(false); // Mobil chat modal
   const [editingLiveFeedId, setEditingLiveFeedId] = useState(null); // Redigerer live-innlegg
   const [editingLiveFeedContent, setEditingLiveFeedContent] = useState('');
+  const [deltePlasser, setDeltePlasser] = useState({}); // { øvelseIdx: [4] } = plass 4 er delt
   const chatEndRef = useRef(null);
 
   useEffect(() => {
@@ -931,6 +932,7 @@ export default function OLTippingApp() {
     const unsubscribeResultater = onSnapshot(doc(db, 'config', 'resultater'), (docSnap) => {
       if (docSnap.exists()) {
         setResultater(docSnap.data().data || {});
+        setDeltePlasser(docSnap.data().deltePlasser || {});
         if (docSnap.data().norskeGull !== undefined) {
           setNorskeGullResultat(docSnap.data().norskeGull.toString());
         }
@@ -1011,6 +1013,7 @@ export default function OLTippingApp() {
     try {
       await setDoc(doc(db, 'config', 'resultater'), { 
         data: resultater,
+        deltePlasser: deltePlasser,
         norskeGull: norskeGullResultat ? parseInt(norskeGullResultat) : null
       });
       setSaveStatus({ type: 'success', message: 'Resultater lagret!' });
@@ -3199,27 +3202,52 @@ export default function OLTippingApp() {
                           {ø.type === 'individuell' ? '5 plasser (utøvere)' : '3 plasser (nasjoner)'}
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                          {(ø.type === 'individuell' ? [1,2,3,4,5] : [1,2,3]).map((pos) => (
-                            <div key={pos} className="flex items-center gap-2">
-                              <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
-                                pos === 1 ? 'bg-yellow-500 text-yellow-900' :
-                                pos === 2 ? 'bg-slate-300 text-slate-700' :
-                                pos === 3 ? 'bg-orange-500 text-orange-900' :
-                                'bg-slate-600 text-white'
-                              }`}>{pos}</span>
-                              <AutocompleteInput
-                                value={resultater[ø.idx]?.[pos-1] || ''}
-                                onChange={(val) => {
-                                  const newRes = [...(resultater[ø.idx] || [])];
-                                  newRes[pos-1] = val;
-                                  setResultater(p => ({ ...p, [ø.idx]: newRes }));
-                                }}
-                                suggestions={getSuggestions(ø.sport, ø.type)}
-                                placeholder={pos === 1 ? 'Gull...' : pos === 2 ? 'Sølv...' : pos === 3 ? 'Bronsje...' : `${pos}. plass...`}
-                                className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-sm text-white"
-                              />
-                            </div>
-                          ))}
+                          {(ø.type === 'individuell' ? [1,2,3,4,5] : [1,2,3]).map((pos) => {
+                            const erDelt = deltePlasser[ø.idx]?.includes(pos);
+                            const forrigeDelt = deltePlasser[ø.idx]?.includes(pos - 1);
+                            return (
+                              <div key={pos} className="space-y-1">
+                                <div className="flex items-center gap-2">
+                                  <span className={`w-6 h-6 flex items-center justify-center rounded-full text-xs font-bold ${
+                                    pos === 1 ? 'bg-yellow-500 text-yellow-900' :
+                                    pos === 2 ? 'bg-slate-300 text-slate-700' :
+                                    pos === 3 ? 'bg-orange-500 text-orange-900' :
+                                    'bg-slate-600 text-white'
+                                  }`}>{pos}</span>
+                                  <AutocompleteInput
+                                    value={resultater[ø.idx]?.[pos-1] || ''}
+                                    onChange={(val) => {
+                                      const newRes = [...(resultater[ø.idx] || [])];
+                                      newRes[pos-1] = val;
+                                      setResultater(p => ({ ...p, [ø.idx]: newRes }));
+                                    }}
+                                    suggestions={getSuggestions(ø.sport, ø.type)}
+                                    placeholder={forrigeDelt ? '(tom - delt over)' : pos === 1 ? 'Gull...' : pos === 2 ? 'Sølv...' : pos === 3 ? 'Bronse...' : `${pos}. plass...`}
+                                    className={`flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-sm text-white ${forrigeDelt ? 'opacity-50' : ''}`}
+                                  />
+                                </div>
+                                {/* Delt plass checkbox - ikke på siste plass */}
+                                {pos < (ø.type === 'individuell' ? 5 : 3) && (
+                                  <label className="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer ml-8">
+                                    <input
+                                      type="checkbox"
+                                      checked={erDelt}
+                                      onChange={(e) => {
+                                        const current = deltePlasser[ø.idx] || [];
+                                        if (e.target.checked) {
+                                          setDeltePlasser(p => ({ ...p, [ø.idx]: [...current, pos] }));
+                                        } else {
+                                          setDeltePlasser(p => ({ ...p, [ø.idx]: current.filter(p => p !== pos) }));
+                                        }
+                                      }}
+                                      className="w-3 h-3 rounded border-slate-500 bg-slate-800 text-cyan-500"
+                                    />
+                                    Delt {pos}. plass
+                                  </label>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
                     ))}
