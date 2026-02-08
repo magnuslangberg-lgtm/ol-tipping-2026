@@ -635,6 +635,37 @@ const NASJONER = [
   "Estland", "Latvia", "Litauen", "Ukraina", "Hviterussland", "Australia",
 ];
 
+// Mapping fra engelske/alternative nasjonsnavn til norske
+const NASJONS_ALIAS = {
+  "norway": "Norge", "nor": "Norge",
+  "sweden": "Sverige", "swe": "Sverige",
+  "finland": "Finland", "fin": "Finland",
+  "russia": "Russland", "rus": "Russland",
+  "germany": "Tyskland", "ger": "Tyskland",
+  "austria": "Østerrike", "aut": "Østerrike",
+  "switzerland": "Sveits", "sui": "Sveits", "swiss": "Sveits",
+  "france": "Frankrike", "fra": "Frankrike",
+  "italy": "Italia", "ita": "Italia",
+  "united states": "USA", "america": "USA",
+  "canada": "Canada", "can": "Canada",
+  "japan": "Japan", "jpn": "Japan",
+  "china": "Kina", "chn": "Kina",
+  "slovenia": "Slovenia", "slo": "Slovenia",
+  "poland": "Polen", "pol": "Polen",
+  "czech republic": "Tsjekkia", "czechia": "Tsjekkia", "cze": "Tsjekkia",
+  "slovakia": "Slovakia", "svk": "Slovakia",
+  "great britain": "Storbritannia", "uk": "Storbritannia", "gbr": "Storbritannia", "united kingdom": "Storbritannia",
+  "netherlands": "Nederland", "ned": "Nederland", "holland": "Nederland",
+  "south korea": "Sør-Korea", "korea": "Sør-Korea", "kor": "Sør-Korea",
+  "denmark": "Danmark", "den": "Danmark",
+  "estonia": "Estland", "est": "Estland",
+  "latvia": "Latvia", "lat": "Latvia",
+  "lithuania": "Litauen", "ltu": "Litauen",
+  "ukraine": "Ukraina", "ukr": "Ukraina",
+  "belarus": "Hviterussland", "blr": "Hviterussland",
+  "australia": "Australia", "aus": "Australia",
+};
+
 const SPORT_COLORS = {
   langrenn: { bg: 'bg-blue-600', light: 'bg-blue-50', border: 'border-blue-300' },
   skiskyting: { bg: 'bg-red-600', light: 'bg-red-50', border: 'border-red-300' },
@@ -738,11 +769,30 @@ function fuzzyMatch(name1, name2) {
 }
 
 function findBestMatch(searchName, resultsList) {
+  if (!searchName) return { match: null, score: 0, index: -1 };
+  
+  // Først sjekk om søkenavnet er et kjent nasjons-alias
+  const normalizedSearch = searchName.trim().toLowerCase();
+  const mappedNation = NASJONS_ALIAS[normalizedSearch];
+  
+  // Hvis vi fant en mapping, søk etter det norske navnet
+  const searchFor = mappedNation || searchName;
+  
   let best = { match: null, score: 0, index: -1 };
   resultsList.forEach((name, idx) => {
     if (!name) return;
-    const { match, score } = fuzzyMatch(searchName, name);
+    
+    // Sjekk også om resultatet er et alias
+    const normalizedResult = name.trim().toLowerCase();
+    const mappedResult = NASJONS_ALIAS[normalizedResult] || name;
+    
+    // Sammenlign både original og mappet versjon
+    const { match, score } = fuzzyMatch(searchFor, mappedResult);
     if (match && score > best.score) best = { match: name, score, index: idx };
+    
+    // Prøv også direkte match med original
+    const { match: match2, score: score2 } = fuzzyMatch(searchFor, name);
+    if (match2 && score2 > best.score) best = { match: name, score: score2, index: idx };
   });
   return best;
 }
