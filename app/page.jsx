@@ -1291,22 +1291,21 @@ export default function OLTippingApp() {
   };
 
   // Beregn faktisk plassering med hensyn til delte plasser
-  // Returnerer array med plassering for hver posisjon, f.eks. [1,2,3,4,4] hvis 4. plass er delt
+  // Hvis plass 4 er delt: posisjon 1,2,3,4,5 i lista → plassering 1,2,3,4,4
   const getPlasseringerMedDelt = (øvelseIdx) => {
     const delt = deltePlasser[øvelseIdx] || [];
     const plasseringer = [];
     let currentPlass = 1;
     
     for (let i = 0; i < 5; i++) {
-      plasseringer.push(currentPlass);
-      // Hvis denne plassen IKKE er delt, øk til neste
-      // Hvis den ER delt, behold samme plassering for neste
-      if (!delt.includes(currentPlass)) {
-        currentPlass++;
+      // Sjekk om FORRIGE plass var delt - da får denne samme plassering
+      if (i > 0 && delt.includes(plasseringer[i - 1])) {
+        // Forrige plass var delt, så denne får samme plassering
+        plasseringer.push(plasseringer[i - 1]);
       } else {
-        // Etter en delt plass, hopp over neste nummer
-        currentPlass += 2;
+        plasseringer.push(currentPlass);
       }
+      currentPlass = plasseringer[i] + 1;
     }
     return plasseringer;
   };
