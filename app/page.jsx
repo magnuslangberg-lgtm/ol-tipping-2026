@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Trophy, Users, Calendar, ChevronDown, ChevronUp, Send, Eye, EyeOff, Mountain, Flag, CheckCircle, AlertCircle, Lock, LogOut, User, FileText, AlertTriangle, List, X, Download, Upload, Trash2, MessageCircle, Radio, Edit3 } from 'lucide-react';
+import { Trophy, Users, Calendar, ChevronDown, ChevronUp, Send, Eye, EyeOff, Mountain, Flag, CheckCircle, AlertCircle, Lock, LogOut, User, FileText, AlertTriangle, List, X, Download, Upload, Trash2, MessageCircle, Radio, Edit3, Pin } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
 
@@ -1119,6 +1119,16 @@ export default function OLTippingApp() {
     }
   };
 
+  const togglePinPost = async (postId, currentlyPinned) => {
+    try {
+      await setDoc(doc(db, 'livefeed', postId), {
+        pinned: !currentlyPinned
+      }, { merge: true });
+    } catch (e) {
+      console.error('Feil ved pinning:', e);
+    }
+  };
+
   const deleteChatMessage = async (msgId) => {
     try {
       await deleteDoc(doc(db, 'chat', msgId));
@@ -1693,87 +1703,7 @@ export default function OLTippingApp() {
               </a>
             </div>
 
-            {/* Live-oppdateringer (kompakt, åpen som default, max 200px) */}
-            <div className="bg-gradient-to-r from-red-900/40 to-orange-900/40 rounded-lg border border-red-500/30">
-              <div className="p-3 flex items-center justify-between border-b border-red-500/20">
-                <div className="flex items-center gap-2">
-                  <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
-                  <span className="text-white font-semibold text-sm">Live-oppdateringer</span>
-                  {liveFeed.length > 0 && <span className="bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full">{liveFeed.length}</span>}
-                </div>
-              </div>
-              
-              {/* Innlegg - maks 200px høyde */}
-              <div className="max-h-48 overflow-y-auto">
-                {liveFeed.length === 0 ? (
-                  <p className="text-slate-500 text-sm p-3">Ingen oppdateringer ennå</p>
-                ) : (
-                  <div className="p-2 space-y-2">
-                    {liveFeed.slice(0, 5).map((post, idx) => {
-                      const currentUserId = isAdminLoggedIn ? 'admin' : (studioLoggedIn?.id || loggedInDeltaker?.id);
-                      const canEdit = isAdminLoggedIn || post.authorId === currentUserId;
-                      const isEditing = editingLiveFeedId === post.id;
-                      
-                      return (
-                        <div key={post.id} className={`text-sm p-2 rounded-lg ${idx === 0 ? 'bg-slate-800/60 border border-red-500/20' : 'bg-slate-900/40'}`}>
-                          {isEditing ? (
-                            <div className="space-y-2">
-                              <textarea
-                                value={editingLiveFeedContent}
-                                onChange={(e) => setEditingLiveFeedContent(e.target.value)}
-                                className="w-full px-2 py-1 bg-slate-900 border border-slate-600 rounded text-white text-sm resize-none"
-                                rows={3}
-                              />
-                              <div className="flex gap-2 justify-end">
-                                <button onClick={() => { setEditingLiveFeedId(null); setEditingLiveFeedContent(''); }} className="px-2 py-1 text-xs text-slate-400 hover:text-white">Avbryt</button>
-                                <button onClick={() => updateLiveFeedPost(post.id, editingLiveFeedContent)} className="px-2 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded">Lagre</button>
-                              </div>
-                            </div>
-                          ) : (
-                            <>
-                              <div className="flex justify-between items-start gap-2">
-                                <p className="text-white whitespace-pre-wrap leading-relaxed flex-1 text-xs">{post.content}</p>
-                                {canEdit && (
-                                  <div className="flex gap-1 flex-shrink-0">
-                                    <button onClick={() => { setEditingLiveFeedId(post.id); setEditingLiveFeedContent(post.content); }} className="text-slate-400 hover:text-white p-0.5"><Edit3 className="w-3 h-3" /></button>
-                                    <button onClick={() => deleteLiveFeedPost(post.id)} className="text-red-400 hover:text-red-300 p-0.5"><X className="w-3 h-3" /></button>
-                                  </div>
-                                )}
-                              </div>
-                              <p className="text-xs text-slate-500 mt-1 flex items-center gap-2">
-                                <span className="text-cyan-400">{post.author || 'Admin'}</span>
-                                <span>•</span>
-                                <span>{post.date} {post.time}</span>
-                                {post.editedAt && <span className="text-slate-600">(redigert)</span>}
-                              </p>
-                            </>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-              
-              {/* Ny oppdatering - alle innloggede kan poste */}
-              {(isAdminLoggedIn || studioLoggedIn || loggedInDeltaker) && (
-                <div className="p-2 border-t border-red-500/20">
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={newLiveFeedPost}
-                      onChange={(e) => setNewLiveFeedPost(e.target.value)}
-                      onKeyPress={(e) => e.key === 'Enter' && sendLiveFeedPost()}
-                      placeholder={`Skriv oppdatering som ${isAdminLoggedIn ? 'Admin' : (studioLoggedIn?.navn || loggedInDeltaker?.navn)}...`}
-                      className="flex-1 px-2 py-1.5 bg-slate-900 border border-slate-600 rounded text-white text-sm"
-                    />
-                    <button onClick={sendLiveFeedPost} disabled={!newLiveFeedPost.trim()} className="px-3 py-1.5 bg-red-600 hover:bg-red-700 disabled:bg-slate-700 text-white rounded text-sm">
-                      <Send className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+            {/* Live Feed vises nå kun i chat-sidebar og mobil-modal */}
 
             {/* To-kolonne layout på desktop */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -1989,28 +1919,92 @@ export default function OLTippingApp() {
                 </div>
               </div>
 
-              {/* HØYRE: Chat (1/3 bredde, sticky på desktop) */}
-              <div className="lg:col-span-1">
+              {/* HØYRE: OL Live Feed - kombinert chat og oppdateringer (1/3 bredde, sticky på desktop) */}
+              <div className="lg:col-span-1 hidden lg:block">
                 <div className="bg-slate-800/50 rounded-xl p-4 border border-cyan-500/30 lg:sticky lg:top-4">
                   <h3 className="font-bold text-cyan-400 mb-3 flex items-center gap-2">
-                    <MessageCircle className="w-4 h-4" /> Chat
-                    {chatMessages.length > 0 && <span className="bg-cyan-600 text-white text-xs px-1.5 py-0.5 rounded-full">{chatMessages.length}</span>}
+                    <MessageCircle className="w-4 h-4" /> OL Live
+                    {liveFeed.length > 0 && <span className="bg-cyan-600 text-white text-xs px-1.5 py-0.5 rounded-full">{liveFeed.length}</span>}
                   </h3>
                   
+                  {/* Festede innlegg øverst */}
+                  {liveFeed.filter(p => p.pinned).length > 0 && (
+                    <div className="mb-3 space-y-2">
+                      {liveFeed.filter(p => p.pinned).map(post => (
+                        <div key={post.id} className="p-2 rounded-lg bg-yellow-900/30 border border-yellow-500/30">
+                          <div className="flex items-start gap-2">
+                            <Pin className="w-3 h-3 text-yellow-400 mt-1 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="text-white text-sm whitespace-pre-wrap">{post.content}</p>
+                              <p className="text-xs text-yellow-400/70 mt-1">{post.author || 'Admin'} • {post.date}</p>
+                            </div>
+                            {isAdminLoggedIn && (
+                              <button onClick={() => togglePinPost(post.id, true)} className="text-yellow-400 hover:text-yellow-300 p-0.5 flex-shrink-0">
+                                <Pin className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
                   {/* Meldinger */}
-                  <div className="space-y-2 h-64 lg:h-96 overflow-y-auto mb-3 p-2 bg-slate-900/50 rounded-lg">
-                    {chatMessages.length === 0 ? (
+                  <div className="space-y-2 h-64 lg:h-80 overflow-y-auto mb-3 p-2 bg-slate-900/50 rounded-lg">
+                    {liveFeed.filter(p => !p.pinned).length === 0 ? (
                       <p className="text-slate-500 text-center py-8 text-sm">Ingen meldinger ennå</p>
                     ) : (
-                      chatMessages.map(msg => (
-                        <div key={msg.id} className={`p-2 rounded-lg ${msg.navn === (studioLoggedIn?.navn || (isAdminLoggedIn ? 'Admin' : '')) ? 'bg-cyan-900/30 ml-4' : 'bg-slate-800/50 mr-4'}`}>
-                          <div className="flex justify-between items-start">
-                            <div><span className="font-semibold text-cyan-300 text-xs">{msg.navn}</span><span className="text-slate-500 text-xs ml-1">{msg.time}</span></div>
-                            {isAdminLoggedIn && <button onClick={() => deleteChatMessage(msg.id)} className="text-red-400 hover:text-red-300"><X className="w-3 h-3" /></button>}
+                      liveFeed.filter(p => !p.pinned).map(post => {
+                        const currentUserId = isAdminLoggedIn ? 'admin' : (studioLoggedIn?.id || loggedInDeltaker?.id);
+                        const isOwn = post.authorId === currentUserId;
+                        const canEdit = isAdminLoggedIn || isOwn;
+                        const isEditing = editingLiveFeedId === post.id;
+                        
+                        return (
+                          <div key={post.id} className={`p-2 rounded-lg ${isOwn ? 'bg-cyan-900/30 ml-4' : 'bg-slate-800/50 mr-4'}`}>
+                            {isEditing ? (
+                              <div className="space-y-2">
+                                <textarea
+                                  value={editingLiveFeedContent}
+                                  onChange={(e) => setEditingLiveFeedContent(e.target.value)}
+                                  className="w-full px-2 py-1 bg-slate-900 border border-slate-600 rounded text-white text-sm resize-none"
+                                  rows={2}
+                                />
+                                <div className="flex gap-2 justify-end">
+                                  <button onClick={() => { setEditingLiveFeedId(null); setEditingLiveFeedContent(''); }} className="px-2 py-1 text-xs text-slate-400 hover:text-white">Avbryt</button>
+                                  <button onClick={() => updateLiveFeedPost(post.id, editingLiveFeedContent)} className="px-2 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded">Lagre</button>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <span className="font-semibold text-cyan-300 text-xs">{post.author || 'Anonym'}</span>
+                                    <span className="text-slate-500 text-xs ml-1">{post.time}</span>
+                                    {post.editedAt && <span className="text-slate-600 text-xs ml-1">(red.)</span>}
+                                  </div>
+                                  {canEdit && (
+                                    <div className="flex gap-1">
+                                      {isAdminLoggedIn && (
+                                        <button onClick={() => togglePinPost(post.id, false)} className="text-slate-400 hover:text-yellow-400 p-0.5" title="Fest innlegg">
+                                          <Pin className="w-3 h-3" />
+                                        </button>
+                                      )}
+                                      <button onClick={() => { setEditingLiveFeedId(post.id); setEditingLiveFeedContent(post.content); }} className="text-slate-400 hover:text-white p-0.5">
+                                        <Edit3 className="w-3 h-3" />
+                                      </button>
+                                      <button onClick={() => deleteLiveFeedPost(post.id)} className="text-red-400 hover:text-red-300 p-0.5">
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                                <p className="text-white text-sm mt-0.5 whitespace-pre-wrap">{post.content}</p>
+                              </>
+                            )}
                           </div>
-                          <p className="text-white text-sm mt-0.5">{msg.message}</p>
-                        </div>
-                      ))
+                        );
+                      })
                     )}
                     <div ref={chatEndRef} />
                   </div>
@@ -2018,7 +2012,7 @@ export default function OLTippingApp() {
                   {/* Innlogging/Skriv */}
                   {!studioLoggedIn && !isAdminLoggedIn && !loggedInDeltaker ? (
                     <div className="space-y-2">
-                      <p className="text-slate-400 text-xs">Logg inn for å chatte:</p>
+                      <p className="text-slate-400 text-xs">Logg inn for å skrive:</p>
                       <input type="text" value={studioLoginNavn} onChange={(e) => setStudioLoginNavn(e.target.value)} placeholder="Lagnavn..." className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm" />
                       <div className="flex gap-2">
                         <input type="password" value={studioLoginPin} onChange={(e) => setStudioLoginPin(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleStudioLogin()} placeholder="PIN..." className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm" />
@@ -2033,8 +2027,8 @@ export default function OLTippingApp() {
                         {!isAdminLoggedIn && <button onClick={() => { setStudioLoggedIn(null); setLoggedInDeltaker(null); setIsEditMode(false); }} className="text-red-400 hover:text-red-300">Logg ut</button>}
                       </div>
                       <div className="flex gap-2">
-                        <input type="text" value={newChatMessage} onChange={(e) => setNewChatMessage(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && sendChatMessage()} placeholder="Melding..." className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm" />
-                        <button onClick={sendChatMessage} disabled={!newChatMessage.trim()} className="px-3 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-700 text-white rounded-lg"><Send className="w-4 h-4" /></button>
+                        <input type="text" value={newLiveFeedPost} onChange={(e) => setNewLiveFeedPost(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && sendLiveFeedPost()} placeholder="Skriv melding..." className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm" />
+                        <button onClick={sendLiveFeedPost} disabled={!newLiveFeedPost.trim()} className="px-3 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-700 text-white rounded-lg"><Send className="w-4 h-4" /></button>
                       </div>
                     </>
                   )}
@@ -3199,9 +3193,9 @@ export default function OLTippingApp() {
         className="lg:hidden fixed bottom-4 right-4 w-14 h-14 bg-cyan-600 hover:bg-cyan-700 text-white rounded-full shadow-lg flex items-center justify-center z-40"
       >
         <MessageCircle className="w-6 h-6" />
-        {chatMessages.length > 0 && (
+        {liveFeed.length > 0 && (
           <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-            {chatMessages.length > 9 ? '9+' : chatMessages.length}
+            {liveFeed.length > 9 ? '9+' : liveFeed.length}
           </span>
         )}
       </button>
@@ -3212,33 +3206,53 @@ export default function OLTippingApp() {
           <div className="bg-slate-900 flex items-center justify-between p-4 border-b border-slate-700">
             <h3 className="text-white font-bold flex items-center gap-2">
               <MessageCircle className="w-5 h-5 text-cyan-400" />
-              Chat ({chatMessages.length})
+              OL Live ({liveFeed.length})
             </h3>
             <button onClick={() => setShowMobileChat(false)} className="text-slate-400 hover:text-white p-2">
               <X className="w-6 h-6" />
             </button>
           </div>
           
+          {/* Festede innlegg */}
+          {liveFeed.filter(p => p.pinned).length > 0 && (
+            <div className="p-3 border-b border-slate-700 bg-yellow-900/20">
+              {liveFeed.filter(p => p.pinned).map(post => (
+                <div key={post.id} className="flex items-start gap-2">
+                  <Pin className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-white text-sm">{post.content}</p>
+                    <p className="text-xs text-yellow-400/70 mt-1">{post.author} • {post.date}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          
           <div className="flex-1 overflow-y-auto p-4 space-y-2">
-            {chatMessages.length === 0 ? (
+            {liveFeed.filter(p => !p.pinned).length === 0 ? (
               <p className="text-slate-500 text-center py-8">Ingen meldinger ennå</p>
             ) : (
-              chatMessages.map(msg => (
-                <div key={msg.id} className={`p-2 rounded-lg ${msg.navn === (studioLoggedIn?.navn || loggedInDeltaker?.navn || (isAdminLoggedIn ? 'Admin' : '')) ? 'bg-cyan-900/30 ml-8' : 'bg-slate-800/50 mr-8'}`}>
-                  <div className="flex items-center justify-between">
-                    <span className="text-cyan-400 text-xs font-semibold">{msg.navn}</span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-slate-500 text-xs">{msg.time}</span>
-                      {isAdminLoggedIn && (
-                        <button onClick={() => deleteChatMessage(msg.id)} className="text-red-400 hover:text-red-300">
-                          <X className="w-3 h-3" />
-                        </button>
-                      )}
+              liveFeed.filter(p => !p.pinned).map(post => {
+                const currentUserId = isAdminLoggedIn ? 'admin' : (studioLoggedIn?.id || loggedInDeltaker?.id);
+                const isOwn = post.authorId === currentUserId;
+                
+                return (
+                  <div key={post.id} className={`p-2 rounded-lg ${isOwn ? 'bg-cyan-900/30 ml-8' : 'bg-slate-800/50 mr-8'}`}>
+                    <div className="flex items-center justify-between">
+                      <span className="text-cyan-400 text-xs font-semibold">{post.author || 'Anonym'}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-500 text-xs">{post.time}</span>
+                        {(isAdminLoggedIn || isOwn) && (
+                          <button onClick={() => deleteLiveFeedPost(post.id)} className="text-red-400 hover:text-red-300">
+                            <X className="w-3 h-3" />
+                          </button>
+                        )}
+                      </div>
                     </div>
+                    <p className="text-white text-sm mt-1 whitespace-pre-wrap">{post.content}</p>
                   </div>
-                  <p className="text-white text-sm mt-1">{msg.message}</p>
-                </div>
-              ))
+                );
+              })
             )}
             <div ref={chatEndRef} />
           </div>
@@ -3247,7 +3261,7 @@ export default function OLTippingApp() {
           <div className="p-4 border-t border-slate-700 bg-slate-900">
             {!studioLoggedIn && !isAdminLoggedIn && !loggedInDeltaker ? (
               <div className="space-y-2">
-                <p className="text-slate-400 text-xs">Logg inn for å chatte:</p>
+                <p className="text-slate-400 text-xs">Logg inn for å skrive:</p>
                 <div className="flex gap-2">
                   <input type="text" value={studioLoginNavn} onChange={(e) => setStudioLoginNavn(e.target.value)} placeholder="Lagnavn..." className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm" />
                   <input type="password" value={studioLoginPin} onChange={(e) => setStudioLoginPin(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleStudioLogin()} placeholder="PIN..." className="w-20 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm" />
@@ -3259,13 +3273,13 @@ export default function OLTippingApp() {
               <div className="flex gap-2">
                 <input
                   type="text"
-                  value={newChatMessage}
-                  onChange={(e) => setNewChatMessage(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && sendChatMessage()}
-                  placeholder="Melding..."
+                  value={newLiveFeedPost}
+                  onChange={(e) => setNewLiveFeedPost(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && sendLiveFeedPost()}
+                  placeholder="Skriv melding..."
                   className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white"
                 />
-                <button onClick={sendChatMessage} disabled={!newChatMessage.trim()} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-700 text-white rounded-lg">
+                <button onClick={sendLiveFeedPost} disabled={!newLiveFeedPost.trim()} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-700 text-white rounded-lg">
                   <Send className="w-5 h-5" />
                 </button>
               </div>
