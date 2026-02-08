@@ -73,7 +73,7 @@ async function downloadExcelTemplate() {
     [2, 'Skøyter, 5000m - menn', 'IND'],
     [3, 'Alpint, lagkombinasjon - menn', 'LAG'],
     [3, 'Hopp, normal bakke - menn', 'IND'],
-    [3, 'Freeski, slopestyle - menn', 'IND'],
+    [4, 'Freeski, slopestyle - menn', 'IND'],
     [4, 'Alpint, lagkombinasjon - kvinner', 'LAG'],
     [4, 'Langrenn, sprint - kvinner', 'IND'],
     [4, 'Langrenn, sprint - menn', 'IND'],
@@ -331,7 +331,7 @@ const OL_PROGRAM = [
   // DAG 3 - Mandag 9. februar
   { dag: 3, dato: "Man 9. feb", tid: "10:00", øvelse: "Alpint, lagkombinasjon - menn", type: "lag", sport: "alpint" },
   { dag: 3, dato: "Man 9. feb", tid: "18:30", øvelse: "Hopp, normal bakke - menn", type: "individuell", sport: "hopp" },
-  { dag: 3, dato: "Man 9. feb", tid: "12:00", øvelse: "Freeski, slopestyle - menn", type: "individuell", sport: "freeski" },
+  { dag: 4, dato: "Tir 10. feb", tid: "12:00", øvelse: "Freeski, slopestyle - menn", type: "individuell", sport: "freeski" },
   
   // DAG 4 - Tirsdag 10. februar
   { dag: 4, dato: "Tir 10. feb", tid: "10:00", øvelse: "Alpint, lagkombinasjon - kvinner", type: "lag", sport: "alpint" },
