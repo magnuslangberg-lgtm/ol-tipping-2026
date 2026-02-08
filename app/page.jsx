@@ -1680,7 +1680,7 @@ export default function OLTippingApp() {
                 <summary className="p-3 cursor-pointer flex items-center justify-between">
                   <div className="flex items-center gap-2 flex-1 min-w-0">
                     <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse flex-shrink-0"></span>
-                    <span className="text-white text-sm truncate">{liveFeed[0]?.content}</span>
+                    <span className="text-white text-sm truncate">{liveFeed[0]?.content?.split('\n')[0]}</span>
                   </div>
                   <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                     <span className="text-xs text-slate-400">{liveFeed[0]?.time}</span>
@@ -1688,14 +1688,14 @@ export default function OLTippingApp() {
                     <ChevronDown className="w-4 h-4 text-red-400 group-open:rotate-180 transition-transform" />
                   </div>
                 </summary>
-                <div className="px-3 pb-3 space-y-2 max-h-48 overflow-y-auto">
+                <div className="px-3 pb-3 space-y-3 max-h-96 overflow-y-auto">
                   {liveFeed.map((post, idx) => (
-                    <div key={post.id} className={`text-sm p-2 rounded ${idx === 0 ? 'bg-slate-800/50' : 'bg-slate-900/30'}`}>
-                      <div className="flex justify-between items-start">
-                        <p className="text-white whitespace-pre-wrap">{post.content}</p>
-                        {isAdminLoggedIn && <button onClick={() => deleteLiveFeedPost(post.id)} className="text-red-400 hover:text-red-300 p-1 flex-shrink-0"><X className="w-3 h-3" /></button>}
+                    <div key={post.id} className={`text-sm p-3 rounded-lg ${idx === 0 ? 'bg-slate-800/60 border border-red-500/20' : 'bg-slate-900/40'}`}>
+                      <div className="flex justify-between items-start gap-2">
+                        <p className="text-white whitespace-pre-wrap leading-relaxed flex-1">{post.content}</p>
+                        {isAdminLoggedIn && <button onClick={() => deleteLiveFeedPost(post.id)} className="text-red-400 hover:text-red-300 p-1 flex-shrink-0"><X className="w-4 h-4" /></button>}
                       </div>
-                      <p className="text-xs text-slate-500 mt-1">{post.date} kl. {post.time}</p>
+                      <p className="text-xs text-slate-500 mt-2 pt-2 border-t border-slate-700/50">{post.date} kl. {post.time}</p>
                     </div>
                   ))}
                 </div>
@@ -1705,17 +1705,16 @@ export default function OLTippingApp() {
             {/* Admin: Ny oppdatering */}
             {isAdminLoggedIn && (
               <div className="bg-slate-800/50 rounded-lg p-3 border border-red-500/30">
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={newLiveFeedPost}
-                    onChange={(e) => setNewLiveFeedPost(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && sendLiveFeedPost()}
-                    placeholder="Skriv en live-oppdatering..."
-                    className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm"
-                  />
-                  <button onClick={sendLiveFeedPost} disabled={!newLiveFeedPost.trim()} className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-slate-700 text-white font-semibold rounded-lg text-sm">
-                    <Send className="w-4 h-4" />
+                <textarea
+                  value={newLiveFeedPost}
+                  onChange={(e) => setNewLiveFeedPost(e.target.value)}
+                  placeholder="Skriv en live-oppdatering... (Enter for linjeskift, knapp for å sende)"
+                  className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm resize-none"
+                  rows={3}
+                />
+                <div className="flex justify-end mt-2">
+                  <button onClick={sendLiveFeedPost} disabled={!newLiveFeedPost.trim()} className="px-4 py-2 bg-red-600 hover:bg-red-700 disabled:bg-slate-700 text-white font-semibold rounded-lg text-sm flex items-center gap-2">
+                    <Send className="w-4 h-4" /> Publiser
                   </button>
                 </div>
               </div>
