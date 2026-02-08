@@ -1703,7 +1703,79 @@ export default function OLTippingApp() {
               </a>
             </div>
 
-            {/* Live Feed vises nå kun i chat-sidebar og mobil-modal */}
+            {/* Live Feed banner øverst - viser festede innlegg */}
+            {(liveFeed.filter(p => p.pinned).length > 0 || liveFeed.length > 0) && (
+              <div className="bg-gradient-to-r from-red-900/40 to-orange-900/40 rounded-lg border border-red-500/30">
+                {/* Festede innlegg - alltid synlige */}
+                {liveFeed.filter(p => p.pinned).length > 0 && (
+                  <div className="p-3 space-y-2">
+                    {liveFeed.filter(p => p.pinned).map(post => (
+                      <div key={post.id} className="flex items-start gap-2">
+                        <Pin className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white text-sm whitespace-pre-wrap line-clamp-3">{post.content}</p>
+                          <p className="text-xs text-yellow-400/70 mt-1">{post.author || 'Admin'} • {post.date} {post.time}</p>
+                        </div>
+                        {isAdminLoggedIn && (
+                          <div className="flex gap-1 flex-shrink-0">
+                            <button onClick={() => { setEditingLiveFeedId(post.id); setEditingLiveFeedContent(post.content); }} className="text-slate-400 hover:text-white p-0.5"><Edit3 className="w-3 h-3" /></button>
+                            <button onClick={() => togglePinPost(post.id, true)} className="text-yellow-400 hover:text-yellow-300 p-0.5"><Pin className="w-3 h-3" /></button>
+                            <button onClick={() => deleteLiveFeedPost(post.id)} className="text-red-400 hover:text-red-300 p-0.5"><X className="w-3 h-3" /></button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                
+                {/* Resten av feed - collapsed */}
+                {liveFeed.filter(p => !p.pinned).length > 0 && (
+                  <details className="group">
+                    <summary className="p-3 cursor-pointer flex items-center justify-between border-t border-red-500/20">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                        <span className="text-white text-sm">Flere oppdateringer</span>
+                        <span className="bg-red-600 text-white text-xs px-1.5 py-0.5 rounded-full">{liveFeed.filter(p => !p.pinned).length}</span>
+                      </div>
+                      <ChevronDown className="w-4 h-4 text-red-400 group-open:rotate-180 transition-transform" />
+                    </summary>
+                    <div className="px-3 pb-3 space-y-2 max-h-48 overflow-y-auto">
+                      {liveFeed.filter(p => !p.pinned).slice(0, 10).map(post => {
+                        const currentUserId = isAdminLoggedIn ? 'admin' : (studioLoggedIn?.id || loggedInDeltaker?.id);
+                        const canEdit = isAdminLoggedIn || post.authorId === currentUserId;
+                        
+                        return (
+                          <div key={post.id} className="text-sm p-2 rounded-lg bg-slate-900/40">
+                            <div className="flex justify-between items-start gap-2">
+                              <div className="flex-1 min-w-0">
+                                <p className="text-white text-xs whitespace-pre-wrap">{post.content}</p>
+                                <p className="text-xs text-slate-500 mt-1">
+                                  <span className="text-cyan-400">{post.author || 'Anonym'}</span> • {post.time}
+                                </p>
+                              </div>
+                              {canEdit && (
+                                <div className="flex gap-1 flex-shrink-0">
+                                  {isAdminLoggedIn && <button onClick={() => togglePinPost(post.id, false)} className="text-slate-400 hover:text-yellow-400 p-0.5"><Pin className="w-3 h-3" /></button>}
+                                  <button onClick={() => deleteLiveFeedPost(post.id)} className="text-red-400 hover:text-red-300 p-0.5"><X className="w-3 h-3" /></button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </details>
+                )}
+                
+                {/* Kun festede og ingen andre - vis bare festede */}
+                {liveFeed.filter(p => p.pinned).length === 0 && liveFeed.length > 0 && (
+                  <div className="p-3 flex items-center gap-2 text-slate-400 text-sm">
+                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                    <span>{liveFeed.length} melding{liveFeed.length > 1 ? 'er' : ''} i chatten</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* To-kolonne layout på desktop */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
