@@ -316,14 +316,13 @@ const ADMIN_PASSWORD = "OL2026Admin";
 // ============================================
 const OL_PROGRAM = [
   // DAG 1 - Lørdag 7. februar
-  { dag: 1, dato: "Lør 7. feb", tid: "09:30", øvelse: "Langrenn, 20 km skiathlon - kvinner", type: "individuell", sport: "langrenn" },
   { dag: 1, dato: "Lør 7. feb", tid: "12:00", øvelse: "Hopp, normal bakke - kvinner", type: "individuell", sport: "hopp" },
   { dag: 1, dato: "Lør 7. feb", tid: "11:00", øvelse: "Alpint, utfor - menn", type: "individuell", sport: "alpint" },
   { dag: 1, dato: "Lør 7. feb", tid: "15:00", øvelse: "Skøyter, 3000m - kvinner", type: "individuell", sport: "skøyter" },
   { dag: 1, dato: "Lør 7. feb", tid: "13:30", øvelse: "Snowboard, big air - menn", type: "individuell", sport: "snowboard" },
   
   // DAG 2 - Søndag 8. februar
-  { dag: 2, dato: "Søn 8. feb", tid: "09:30", øvelse: "Langrenn, 20 km skiathlon - menn", type: "individuell", sport: "langrenn" },
+  { dag: 2, dato: "Søn 8. feb", tid: "12:30", øvelse: "Langrenn, 20 km skiathlon - menn", type: "individuell", sport: "langrenn" },
   { dag: 2, dato: "Søn 8. feb", tid: "14:45", øvelse: "Skiskyting, mixed stafett", type: "lag", sport: "skiskyting" },
   { dag: 2, dato: "Søn 8. feb", tid: "11:00", øvelse: "Alpint, utfor - kvinner", type: "individuell", sport: "alpint" },
   { dag: 2, dato: "Søn 8. feb", tid: "16:00", øvelse: "Skøyter, 5000m - menn", type: "individuell", sport: "skøyter" },
@@ -335,8 +334,8 @@ const OL_PROGRAM = [
   
   // DAG 4 - Tirsdag 10. februar
   { dag: 4, dato: "Tir 10. feb", tid: "10:00", øvelse: "Alpint, lagkombinasjon - kvinner", type: "lag", sport: "alpint" },
-  { dag: 4, dato: "Tir 10. feb", tid: "12:00", øvelse: "Langrenn, sprint - kvinner", type: "individuell", sport: "langrenn" },
-  { dag: 4, dato: "Tir 10. feb", tid: "14:30", øvelse: "Langrenn, sprint - menn", type: "individuell", sport: "langrenn" },
+  { dag: 4, dato: "Tir 10. feb", tid: "11:45", øvelse: "Langrenn, sprint - kvinner", type: "individuell", sport: "langrenn" },
+  { dag: 4, dato: "Tir 10. feb", tid: "11:45", øvelse: "Langrenn, sprint - menn", type: "individuell", sport: "langrenn" },
   { dag: 4, dato: "Tir 10. feb", tid: "14:30", øvelse: "Skiskyting, 20 km - menn", type: "individuell", sport: "skiskyting" },
   { dag: 4, dato: "Tir 10. feb", tid: "18:00", øvelse: "Hopp, lagkonkurranse mixed", type: "lag", sport: "hopp" },
   
@@ -347,25 +346,25 @@ const OL_PROGRAM = [
   
   // DAG 6 - Torsdag 12. februar
   { dag: 6, dato: "Tor 12. feb", tid: "11:00", øvelse: "Alpint, super-G - kvinner", type: "individuell", sport: "alpint" },
-  { dag: 6, dato: "Tor 12. feb", tid: "09:30", øvelse: "Langrenn, 10 km fri - kvinner", type: "individuell", sport: "langrenn" },
+  { dag: 6, dato: "Tor 12. feb", tid: "13:00", øvelse: "Langrenn, 10 km fri - kvinner", type: "individuell", sport: "langrenn" },
   { dag: 6, dato: "Tor 12. feb", tid: "13:00", øvelse: "Snowboard, slopestyle - menn", type: "individuell", sport: "snowboard" },
   
   // DAG 7 - Fredag 13. februar
   { dag: 7, dato: "Fre 13. feb", tid: "14:30", øvelse: "Skiskyting, 10 km sprint - menn", type: "individuell", sport: "skiskyting" },
-  { dag: 7, dato: "Fre 13. feb", tid: "09:30", øvelse: "Langrenn, 10 km fri - menn", type: "individuell", sport: "langrenn" },
+  { dag: 7, dato: "Fre 13. feb", tid: "11:45", øvelse: "Langrenn, 10 km fri - menn", type: "individuell", sport: "langrenn" },
   { dag: 7, dato: "Fre 13. feb", tid: "16:00", øvelse: "Skøyter, 10000m - menn", type: "individuell", sport: "skøyter" },
   
   // DAG 8 - Lørdag 14. februar
   { dag: 8, dato: "Lør 14. feb", tid: "09:30", øvelse: "Alpint, storslalåm - menn", type: "individuell", sport: "alpint" },
   { dag: 8, dato: "Lør 14. feb", tid: "14:30", øvelse: "Skiskyting, 7,5 km sprint - kvinner", type: "individuell", sport: "skiskyting" },
-  { dag: 8, dato: "Lør 14. feb", tid: "09:00", øvelse: "Langrenn, stafett - kvinner", type: "lag", sport: "langrenn" },
+  { dag: 8, dato: "Lør 14. feb", tid: "12:00", øvelse: "Langrenn, stafett - kvinner", type: "lag", sport: "langrenn" },
   { dag: 8, dato: "Lør 14. feb", tid: "18:00", øvelse: "Hopp, stor bakke - menn", type: "individuell", sport: "hopp" },
   
   // DAG 9 - Søndag 15. februar
   { dag: 9, dato: "Søn 15. feb", tid: "09:30", øvelse: "Alpint, storslalåm - kvinner", type: "individuell", sport: "alpint" },
   { dag: 9, dato: "Søn 15. feb", tid: "14:30", øvelse: "Skiskyting, 12,5 km jaktstart - menn", type: "individuell", sport: "skiskyting" },
   { dag: 9, dato: "Søn 15. feb", tid: "17:00", øvelse: "Skiskyting, 10 km jaktstart - kvinner", type: "individuell", sport: "skiskyting" },
-  { dag: 9, dato: "Søn 15. feb", tid: "09:00", øvelse: "Langrenn, stafett - menn", type: "lag", sport: "langrenn" },
+  { dag: 9, dato: "Søn 15. feb", tid: "12:00", øvelse: "Langrenn, stafett - menn", type: "lag", sport: "langrenn" },
   { dag: 9, dato: "Søn 15. feb", tid: "18:30", øvelse: "Hopp, stor bakke - kvinner", type: "individuell", sport: "hopp" },
   
   // DAG 10 - Mandag 16. februar
@@ -379,8 +378,8 @@ const OL_PROGRAM = [
   // DAG 12 - Onsdag 18. februar
   { dag: 12, dato: "Ons 18. feb", tid: "10:00", øvelse: "Alpint, slalåm - kvinner", type: "individuell", sport: "alpint" },
   { dag: 12, dato: "Ons 18. feb", tid: "14:30", øvelse: "Skiskyting, stafett - kvinner", type: "lag", sport: "skiskyting" },
-  { dag: 12, dato: "Ons 18. feb", tid: "11:00", øvelse: "Langrenn, lagsprint - kvinner", type: "lag", sport: "langrenn" },
-  { dag: 12, dato: "Ons 18. feb", tid: "13:30", øvelse: "Langrenn, lagsprint - menn", type: "lag", sport: "langrenn" },
+  { dag: 12, dato: "Ons 18. feb", tid: "11:45", øvelse: "Langrenn, lagsprint - kvinner", type: "lag", sport: "langrenn" },
+  { dag: 12, dato: "Ons 18. feb", tid: "11:45", øvelse: "Langrenn, lagsprint - menn", type: "lag", sport: "langrenn" },
   
   // DAG 13 - Torsdag 19. februar
   { dag: 13, dato: "Tor 19. feb", tid: "10:00", øvelse: "Kombinert, stor bakke/10 km - menn", type: "individuell", sport: "kombinert" },
@@ -394,11 +393,11 @@ const OL_PROGRAM = [
   { dag: 14, dato: "Fre 20. feb", tid: "16:00", øvelse: "Skøyter, lagtempo - menn", type: "lag", sport: "skøyter" },
   
   // DAG 15 - Lørdag 21. februar
-  { dag: 15, dato: "Lør 21. feb", tid: "08:00", øvelse: "Langrenn, 50 km fellesstart - menn", type: "individuell", sport: "langrenn" },
+  { dag: 15, dato: "Lør 21. feb", tid: "11:00", øvelse: "Langrenn, 50 km fellesstart - menn", type: "individuell", sport: "langrenn" },
   { dag: 15, dato: "Lør 21. feb", tid: "14:00", øvelse: "Curling, finale - menn", type: "lag", sport: "curling" },
   
   // DAG 16 - Søndag 22. februar
-  { dag: 16, dato: "Søn 22. feb", tid: "08:00", øvelse: "Langrenn, 50 km fellesstart - kvinner", type: "individuell", sport: "langrenn" },
+  { dag: 16, dato: "Søn 22. feb", tid: "10:00", øvelse: "Langrenn, 50 km fellesstart - kvinner", type: "individuell", sport: "langrenn" },
   { dag: 16, dato: "Søn 22. feb", tid: "09:00", øvelse: "Curling, finale - kvinner", type: "lag", sport: "curling" },
   { dag: 16, dato: "Søn 22. feb", tid: "13:00", øvelse: "Ishockey, finale - menn", type: "lag", sport: "ishockey" },
 ];
@@ -1052,12 +1051,13 @@ export default function OLTippingApp() {
 
   // OL-Studio funksjoner
   const sendChatMessage = async () => {
-    if (!newChatMessage.trim() || !studioLoggedIn) return;
+    const chatNavn = isAdminLoggedIn ? 'Admin' : (studioLoggedIn?.navn || loggedInDeltaker?.navn);
+    if (!newChatMessage.trim() || !chatNavn) return;
     try {
       const msgId = Date.now().toString();
       await setDoc(doc(db, 'chat', msgId), {
         id: msgId,
-        navn: studioLoggedIn.navn,
+        navn: chatNavn,
         message: newChatMessage.trim(),
         timestamp: Date.now(),
         time: new Date().toLocaleTimeString('no-NO', { hour: '2-digit', minute: '2-digit' })
@@ -1937,7 +1937,7 @@ export default function OLTippingApp() {
                   </div>
                   
                   {/* Innlogging/Skriv */}
-                  {!studioLoggedIn && !isAdminLoggedIn ? (
+                  {!studioLoggedIn && !isAdminLoggedIn && !loggedInDeltaker ? (
                     <div className="space-y-2">
                       <p className="text-slate-400 text-xs">Logg inn for å chatte:</p>
                       <input type="text" value={studioLoginNavn} onChange={(e) => setStudioLoginNavn(e.target.value)} placeholder="Lagnavn..." className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm" />
@@ -1950,8 +1950,8 @@ export default function OLTippingApp() {
                   ) : (
                     <>
                       <div className="flex items-center justify-between mb-2 text-xs">
-                        <span className="text-green-400">💬 {isAdminLoggedIn ? 'Admin' : studioLoggedIn?.navn}</span>
-                        {!isAdminLoggedIn && <button onClick={() => setStudioLoggedIn(null)} className="text-red-400 hover:text-red-300">Logg ut</button>}
+                        <span className="text-green-400">💬 {isAdminLoggedIn ? 'Admin' : (studioLoggedIn?.navn || loggedInDeltaker?.navn)}</span>
+                        {!isAdminLoggedIn && <button onClick={() => { setStudioLoggedIn(null); setLoggedInDeltaker(null); setIsEditMode(false); }} className="text-red-400 hover:text-red-300">Logg ut</button>}
                       </div>
                       <div className="flex gap-2">
                         <input type="text" value={newChatMessage} onChange={(e) => setNewChatMessage(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && sendChatMessage()} placeholder="Melding..." className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm" />
