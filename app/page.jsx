@@ -1850,37 +1850,25 @@ export default function OLTippingApp() {
             {/* Live Feed banner øverst - viser festede innlegg */}
             {(liveFeed.filter(p => p.pinned).length > 0 || liveFeed.length > 0) && (
               <div className="bg-gradient-to-r from-cyan-900/40 to-slate-800/40 rounded-lg border border-cyan-500/30">
-                {/* Festede innlegg - alltid synlige */}
+                {/* Festede innlegg - alltid synlige, hele innholdet */}
                 {liveFeed.filter(p => p.pinned).length > 0 && (
                   <div className="p-3 space-y-2">
-                    {liveFeed.filter(p => p.pinned).map(post => {
-                      const isLong = post.content.length > 200;
-                      const isExpanded = expandedLiveFeedPost === post.id;
-                      return (
-                        <div key={post.id} className="flex items-start gap-2">
-                          <Pin className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
-                          <div className="flex-1 min-w-0">
-                            <p className={`text-white text-sm whitespace-pre-wrap ${!isExpanded && isLong ? 'line-clamp-3' : ''}`}>{post.content}</p>
-                            {isLong && (
-                              <button 
-                                onClick={() => setExpandedLiveFeedPost(isExpanded ? null : post.id)}
-                                className="text-cyan-400 hover:text-cyan-300 text-xs mt-1 font-semibold"
-                              >
-                                {isExpanded ? '▲ Vis mindre' : '▼ Les mer...'}
-                              </button>
-                            )}
-                            <p className="text-xs text-cyan-400/70 mt-1">{post.author || 'Admin'} • {post.date} {post.time}</p>
-                          </div>
-                          {isAdminLoggedIn && (
-                            <div className="flex gap-1 flex-shrink-0">
-                              <button onClick={() => { setEditingLiveFeedId(post.id); setEditingLiveFeedContent(post.content); }} className="text-slate-400 hover:text-white p-0.5"><Edit3 className="w-3 h-3" /></button>
-                              <button onClick={() => togglePinPost(post.id, true)} className="text-yellow-400 hover:text-yellow-300 p-0.5"><Pin className="w-3 h-3" /></button>
-                              <button onClick={() => deleteLiveFeedPost(post.id)} className="text-red-400 hover:text-red-300 p-0.5"><X className="w-3 h-3" /></button>
-                            </div>
-                          )}
+                    {liveFeed.filter(p => p.pinned).map(post => (
+                      <div key={post.id} className="flex items-start gap-2">
+                        <Pin className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white text-sm whitespace-pre-wrap">{post.content}</p>
+                          <p className="text-xs text-cyan-400/70 mt-1">{post.author || 'Admin'} • {post.date} {post.time}</p>
                         </div>
-                      );
-                    })}
+                        {isAdminLoggedIn && (
+                          <div className="flex gap-1 flex-shrink-0">
+                            <button onClick={() => { setEditingLiveFeedId(post.id); setEditingLiveFeedContent(post.content); }} className="text-slate-400 hover:text-white p-0.5"><Edit3 className="w-3 h-3" /></button>
+                            <button onClick={() => togglePinPost(post.id, true)} className="text-yellow-400 hover:text-yellow-300 p-0.5"><Pin className="w-3 h-3" /></button>
+                            <button onClick={() => deleteLiveFeedPost(post.id)} className="text-red-400 hover:text-red-300 p-0.5"><X className="w-3 h-3" /></button>
+                          </div>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 )}
                 
@@ -2194,8 +2182,8 @@ export default function OLTippingApp() {
                                 <textarea
                                   value={editingLiveFeedContent}
                                   onChange={(e) => setEditingLiveFeedContent(e.target.value)}
-                                  className="w-full px-2 py-1 bg-slate-900 border border-slate-600 rounded text-white text-sm resize-none"
-                                  rows={2}
+                                  className="w-full px-2 py-1 bg-slate-900 border border-slate-600 rounded text-white text-sm resize-y min-h-[120px]"
+                                  rows={6}
                                 />
                                 <div className="flex gap-2 justify-end">
                                   <button onClick={() => { setEditingLiveFeedId(null); setEditingLiveFeedContent(''); }} className="px-2 py-1 text-xs text-slate-400 hover:text-white">Avbryt</button>
