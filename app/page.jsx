@@ -768,30 +768,73 @@ function fuzzyMatch(name1, name2) {
   return { match: similarity >= 0.65, score: similarity };
 }
 
+// Normaliser lag-navn: "Sveits" og "Sveits 1" behandles likt
+function normalizeTeamName(name) {
+  if (!name) return { base: '', num: null };
+  const trimmed = name.trim();
+  // Match "Sveits 1", "Sveits 2", "Norge I", "Norge II" etc.
+  const match = trimmed.match(/^(.+?)\s*([1-3IViv]+)?$/);
+  if (match) {
+    const base = match[1].trim();
+    let num = match[2];
+    // Konverter romertall
+    if (num) {
+      num = num.toUpperCase();
+      if (num === 'I' || num === '1') num = '1';
+      else if (num === 'II' || num === '2') num = '2';
+      else if (num === 'III' || num === '3') num = '3';
+      else num = null;
+    }
+    return { base, num };
+  }
+  return { base: trimmed, num: null };
+}
+
 function findBestMatch(searchName, resultsList) {
   if (!searchName) return { match: null, score: 0, index: -1 };
   
+  // Normaliser søkenavnet (håndter lag-numre)
+  const { base: searchBase, num: searchNum } = normalizeTeamName(searchName);
+  
   // Først sjekk om søkenavnet er et kjent nasjons-alias
-  const normalizedSearch = searchName.trim().toLowerCase();
+  const normalizedSearch = searchBase.toLowerCase();
   const mappedNation = NASJONS_ALIAS[normalizedSearch];
   
-  // Hvis vi fant en mapping, søk etter det norske navnet
-  const searchFor = mappedNation || searchName;
+  // Hvis vi fant en mapping, bruk det norske navnet
+  const searchFor = mappedNation || searchBase;
   
   let best = { match: null, score: 0, index: -1 };
   resultsList.forEach((name, idx) => {
     if (!name) return;
     
-    // Sjekk også om resultatet er et alias
-    const normalizedResult = name.trim().toLowerCase();
-    const mappedResult = NASJONS_ALIAS[normalizedResult] || name;
+    // Normaliser resultatet (håndter lag-numre)
+    const { base: resultBase, num: resultNum } = normalizeTeamName(name);
     
-    // Sammenlign både original og mappet versjon
+    // Sjekk også om resultatet er et alias
+    const normalizedResult = resultBase.toLowerCase();
+    const mappedResult = NASJONS_ALIAS[normalizedResult] || resultBase;
+    
+    // Sjekk lag-nummer match
+    // - Hvis søk har nummer: må matche eksakt
+    // - Hvis søk IKKE har nummer: matcher "1" eller ingen nummer
+    // - Hvis resultat IKKE har nummer: matcher søk uten nummer eller med "1"
+    let numMatch = true;
+    if (searchNum && resultNum && searchNum !== resultNum) {
+      numMatch = false; // Begge har nummer, men forskjellige
+    } else if (searchNum && searchNum !== '1' && !resultNum) {
+      numMatch = false; // Søker etter lag 2/3, men resultat har ikke nummer
+    } else if (!searchNum && resultNum && resultNum !== '1') {
+      numMatch = false; // Søker uten nummer, men resultat er lag 2/3
+    }
+    
+    if (!numMatch) return;
+    
+    // Sammenlign base-navn
     const { match, score } = fuzzyMatch(searchFor, mappedResult);
     if (match && score > best.score) best = { match: name, score, index: idx };
     
-    // Prøv også direkte match med original
-    const { match: match2, score: score2 } = fuzzyMatch(searchFor, name);
+    // Prøv også direkte match med original base
+    const { match: match2, score: score2 } = fuzzyMatch(searchFor, resultBase);
     if (match2 && score2 > best.score) best = { match: name, score: score2, index: idx };
   });
   return best;
@@ -920,6 +963,7 @@ export default function OLTippingApp() {
   // Leaderboard og resultat-visning
   const [leaderboardView, setLeaderboardView] = useState('total'); // 'total' eller dag-nummer
   const [expandedLeaderboardDeltaker, setExpandedLeaderboardDeltaker] = useState(null);
+  const [expandedLiveFeedPost, setExpandedLiveFeedPost] = useState(null); // For "les mer" på lange innlegg
   const [adminResultatDag, setAdminResultatDag] = useState(1);
   const [deleteConfirmId, setDeleteConfirmId] = useState(null); // ID for deltaker som skal slettes
   const [editingDeltaker, setEditingDeltaker] = useState(null); // Deltaker som redigeres
@@ -1809,22 +1853,34 @@ export default function OLTippingApp() {
                 {/* Festede innlegg - alltid synlige */}
                 {liveFeed.filter(p => p.pinned).length > 0 && (
                   <div className="p-3 space-y-2">
-                    {liveFeed.filter(p => p.pinned).map(post => (
-                      <div key={post.id} className="flex items-start gap-2">
-                        <Pin className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-white text-sm whitespace-pre-wrap line-clamp-3">{post.content}</p>
-                          <p className="text-xs text-cyan-400/70 mt-1">{post.author || 'Admin'} • {post.date} {post.time}</p>
-                        </div>
-                        {isAdminLoggedIn && (
-                          <div className="flex gap-1 flex-shrink-0">
-                            <button onClick={() => { setEditingLiveFeedId(post.id); setEditingLiveFeedContent(post.content); }} className="text-slate-400 hover:text-white p-0.5"><Edit3 className="w-3 h-3" /></button>
-                            <button onClick={() => togglePinPost(post.id, true)} className="text-yellow-400 hover:text-yellow-300 p-0.5"><Pin className="w-3 h-3" /></button>
-                            <button onClick={() => deleteLiveFeedPost(post.id)} className="text-red-400 hover:text-red-300 p-0.5"><X className="w-3 h-3" /></button>
+                    {liveFeed.filter(p => p.pinned).map(post => {
+                      const isLong = post.content.length > 200;
+                      const isExpanded = expandedLiveFeedPost === post.id;
+                      return (
+                        <div key={post.id} className="flex items-start gap-2">
+                          <Pin className="w-4 h-4 text-yellow-400 mt-0.5 flex-shrink-0" />
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-white text-sm whitespace-pre-wrap ${!isExpanded && isLong ? 'line-clamp-3' : ''}`}>{post.content}</p>
+                            {isLong && (
+                              <button 
+                                onClick={() => setExpandedLiveFeedPost(isExpanded ? null : post.id)}
+                                className="text-cyan-400 hover:text-cyan-300 text-xs mt-1 font-semibold"
+                              >
+                                {isExpanded ? '▲ Vis mindre' : '▼ Les mer...'}
+                              </button>
+                            )}
+                            <p className="text-xs text-cyan-400/70 mt-1">{post.author || 'Admin'} • {post.date} {post.time}</p>
                           </div>
-                        )}
-                      </div>
-                    ))}
+                          {isAdminLoggedIn && (
+                            <div className="flex gap-1 flex-shrink-0">
+                              <button onClick={() => { setEditingLiveFeedId(post.id); setEditingLiveFeedContent(post.content); }} className="text-slate-400 hover:text-white p-0.5"><Edit3 className="w-3 h-3" /></button>
+                              <button onClick={() => togglePinPost(post.id, true)} className="text-yellow-400 hover:text-yellow-300 p-0.5"><Pin className="w-3 h-3" /></button>
+                              <button onClick={() => deleteLiveFeedPost(post.id)} className="text-red-400 hover:text-red-300 p-0.5"><X className="w-3 h-3" /></button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
                 
