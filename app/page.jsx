@@ -2015,6 +2015,14 @@ export default function OLTippingApp() {
                             </div>
                           );
                         })}
+                        <a 
+                          href="https://resultater.nrk.no/vinter-ol" 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="mt-3 text-xs px-3 py-2 bg-slate-700 hover:bg-slate-600 text-cyan-300 rounded-lg flex items-center justify-center gap-1"
+                        >
+                          📊 Se alle resultater på NRK →
+                        </a>
                       </div>
                     );
                   })()}
