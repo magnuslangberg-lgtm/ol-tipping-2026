@@ -1873,50 +1873,69 @@ export default function OLTippingApp() {
                 )}
                 
                 {/* Nyeste innlegg preview + collapsed resten */}
-                {liveFeed.filter(p => !p.pinned).length > 0 && (
-                  <details className="group">
-                    <summary className={`p-3 cursor-pointer ${liveFeed.filter(p => p.pinned).length > 0 ? 'border-t border-cyan-500/20' : ''}`}>
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex-1 min-w-0">
-                          {/* Vis nyeste innlegg som preview */}
-                          <p className="text-white text-sm whitespace-pre-wrap line-clamp-4">{liveFeed.filter(p => !p.pinned)[0]?.content}</p>
-                          <p className="text-xs text-cyan-400/70 mt-1">
-                            {liveFeed.filter(p => !p.pinned)[0]?.author || 'Anonym'} • {liveFeed.filter(p => !p.pinned)[0]?.time}
-                            {liveFeed.filter(p => !p.pinned).length > 1 && (
-                              <span className="ml-2 text-cyan-300">+ {liveFeed.filter(p => !p.pinned).length - 1} flere meldinger</span>
-                            )}
-                          </p>
-                        </div>
-                        <ChevronDown className="w-4 h-4 text-cyan-400 group-open:rotate-180 transition-transform flex-shrink-0 mt-1" />
+                {liveFeed.filter(p => !p.pinned).length > 0 && (() => {
+                  const newestPost = liveFeed.filter(p => !p.pinned)[0];
+                  const isLong = newestPost?.content?.length > 200;
+                  const isExpanded = expandedLiveFeedPost === newestPost?.id;
+                  const otherPosts = liveFeed.filter(p => !p.pinned).slice(1, 15);
+                  
+                  return (
+                    <div className={`${liveFeed.filter(p => p.pinned).length > 0 ? 'border-t border-cyan-500/20' : ''}`}>
+                      {/* Nyeste innlegg */}
+                      <div className="p-3">
+                        <p className={`text-white text-sm whitespace-pre-wrap ${!isExpanded && isLong ? 'line-clamp-4' : ''}`}>
+                          {newestPost?.content}
+                        </p>
+                        {isLong && (
+                          <button 
+                            onClick={() => setExpandedLiveFeedPost(isExpanded ? null : newestPost?.id)}
+                            className="text-cyan-400 hover:text-cyan-300 text-xs mt-1 font-semibold"
+                          >
+                            {isExpanded ? '▲ Vis mindre' : '▼ Les mer...'}
+                          </button>
+                        )}
+                        <p className="text-xs text-cyan-400/70 mt-1">
+                          {newestPost?.author || 'Anonym'} • {newestPost?.time}
+                        </p>
                       </div>
-                    </summary>
-                    <div className="px-3 pb-3 space-y-2 max-h-48 overflow-y-auto border-t border-cyan-500/20 mt-2 pt-2">
-                      {liveFeed.filter(p => !p.pinned).slice(1, 15).map(post => {
-                        const currentUserId = isAdminLoggedIn ? 'admin' : (studioLoggedIn?.id || loggedInDeltaker?.id);
-                        const canEdit = isAdminLoggedIn || post.authorId === currentUserId;
-                        
-                        return (
-                          <div key={post.id} className="text-sm p-2 rounded-lg bg-slate-900/40">
-                            <div className="flex justify-between items-start gap-2">
-                              <div className="flex-1 min-w-0">
-                                <p className="text-white text-xs whitespace-pre-wrap">{post.content}</p>
-                                <p className="text-xs text-slate-500 mt-1">
-                                  <span className="text-cyan-400">{post.author || 'Anonym'}</span> • {post.time}
-                                </p>
-                              </div>
-                              {canEdit && (
-                                <div className="flex gap-1 flex-shrink-0">
-                                  {isAdminLoggedIn && <button onClick={() => togglePinPost(post.id, false)} className="text-slate-400 hover:text-yellow-400 p-0.5"><Pin className="w-3 h-3" /></button>}
-                                  <button onClick={() => deleteLiveFeedPost(post.id)} className="text-red-400 hover:text-red-300 p-0.5"><X className="w-3 h-3" /></button>
+                      
+                      {/* Flere meldinger - collapsed */}
+                      {otherPosts.length > 0 && (
+                        <details className="group">
+                          <summary className="px-3 pb-2 cursor-pointer text-cyan-300 text-xs font-semibold flex items-center gap-1">
+                            + {otherPosts.length} flere meldinger
+                            <ChevronDown className="w-3 h-3 group-open:rotate-180 transition-transform" />
+                          </summary>
+                          <div className="px-3 pb-3 space-y-2 max-h-48 overflow-y-auto border-t border-cyan-500/20 pt-2">
+                            {otherPosts.map(post => {
+                              const currentUserId = isAdminLoggedIn ? 'admin' : (studioLoggedIn?.id || loggedInDeltaker?.id);
+                              const canEdit = isAdminLoggedIn || post.authorId === currentUserId;
+                              
+                              return (
+                                <div key={post.id} className="text-sm p-2 rounded-lg bg-slate-900/40">
+                                  <div className="flex justify-between items-start gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-white text-xs whitespace-pre-wrap">{post.content}</p>
+                                      <p className="text-xs text-slate-500 mt-1">
+                                        <span className="text-cyan-400">{post.author || 'Anonym'}</span> • {post.time}
+                                      </p>
+                                    </div>
+                                    {canEdit && (
+                                      <div className="flex gap-1 flex-shrink-0">
+                                        {isAdminLoggedIn && <button onClick={() => togglePinPost(post.id, false)} className="text-slate-400 hover:text-yellow-400 p-0.5"><Pin className="w-3 h-3" /></button>}
+                                        <button onClick={() => deleteLiveFeedPost(post.id)} className="text-red-400 hover:text-red-300 p-0.5"><X className="w-3 h-3" /></button>
+                                      </div>
+                                    )}
+                                  </div>
                                 </div>
-                              )}
-                            </div>
+                              );
+                            })}
                           </div>
-                        );
-                      })}
+                        </details>
+                      )}
                     </div>
-                  </details>
-                )}
+                  );
+                })()}
               </div>
             )}
 
