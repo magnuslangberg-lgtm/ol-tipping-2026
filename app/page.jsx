@@ -3185,6 +3185,21 @@ export default function OLTippingApp() {
                                   </div>
                                 </button>
                                 <div className="flex items-center gap-2">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedDeltaker(selectedDeltaker?.id === d.id ? null : d);
+                                      setEditingDeltaker(null);
+                                    }}
+                                    className={`px-2 py-1 text-xs rounded font-semibold ${
+                                      selectedDeltaker?.id === d.id 
+                                        ? 'bg-cyan-600 text-white' 
+                                        : 'bg-slate-600 text-slate-300 hover:bg-slate-500'
+                                    }`}
+                                    title="Rediger tips"
+                                  >
+                                    ✏️ Tips
+                                  </button>
                                   <span className="text-xs text-yellow-400" title="PIN-kode">🔑 {d.pin || genererPin(d.navn)}</span>
                                   <button
                                     onClick={(e) => {
@@ -3215,13 +3230,18 @@ export default function OLTippingApp() {
                         {editingDeltaker?.id === selectedDeltaker.id ? (
                           <>
                             <button
-                              onClick={() => {
-                                // Lagre endringer
-                                setAlleTips(p => p.map(d => 
-                                  d.id === editingDeltaker.id ? editingDeltaker : d
-                                ));
-                                setSelectedDeltaker(editingDeltaker);
-                                setEditingDeltaker(null);
+                              onClick={async () => {
+                                // Lagre endringer til Firebase
+                                try {
+                                  await setDoc(doc(db, 'deltakere', editingDeltaker.id), editingDeltaker);
+                                  setSelectedDeltaker(editingDeltaker);
+                                  setEditingDeltaker(null);
+                                  setSaveStatus({ type: 'success', message: 'Tips oppdatert!' });
+                                  setTimeout(() => setSaveStatus(null), 3000);
+                                } catch (e) {
+                                  console.error('Feil ved lagring:', e);
+                                  setSaveStatus({ type: 'error', message: 'Kunne ikke lagre: ' + e.message });
+                                }
                               }}
                               className="text-xs px-2 py-1 bg-green-600 text-white rounded font-semibold"
                             >
@@ -3235,16 +3255,39 @@ export default function OLTippingApp() {
                             </button>
                           </>
                         ) : (
-                          <button
-                            onClick={() => setEditingDeltaker({ ...selectedDeltaker, tips: { ...selectedDeltaker.tips } })}
-                            className="text-xs px-2 py-1 bg-blue-600 text-white rounded"
-                          >
-                            ✏️ Rediger tips
-                          </button>
+                          <>
+                            <button
+                              onClick={() => setEditingDeltaker({ ...selectedDeltaker, tips: { ...selectedDeltaker.tips } })}
+                              className="text-xs px-2 py-1 bg-blue-600 text-white rounded"
+                            >
+                              ✏️ Rediger tips
+                            </button>
+                            <button
+                              onClick={() => setSelectedDeltaker(null)}
+                              className="text-xs px-2 py-1 bg-slate-600 text-white rounded"
+                            >
+                              Lukk
+                            </button>
+                          </>
                         )}
                       </div>
                     </div>
-                    <p className="text-xs text-slate-400 mb-3">Gull-tips: {selectedDeltaker.gullTips} 🇳🇴 | Innsendt: {selectedDeltaker.innsendt}</p>
+                    {editingDeltaker?.id === selectedDeltaker.id ? (
+                      <div className="flex items-center gap-2 text-xs text-slate-400 mb-3">
+                        <span>Gull-tips 🇳🇴:</span>
+                        <input
+                          type="number"
+                          min="0"
+                          max="50"
+                          value={editingDeltaker.gullTips || ''}
+                          onChange={(e) => setEditingDeltaker({ ...editingDeltaker, gullTips: e.target.value })}
+                          className="w-16 px-2 py-1 bg-slate-900 border border-blue-500 rounded text-white text-center"
+                        />
+                        <span className="text-slate-500">| Innsendt: {selectedDeltaker.innsendt}</span>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-400 mb-3">Gull-tips: {selectedDeltaker.gullTips} 🇳🇴 | Innsendt: {selectedDeltaker.innsendt}</p>
+                    )}
                     
                     {getUnknownNames(selectedDeltaker).length > 0 && !editingDeltaker && (
                       <div className="bg-yellow-900/30 rounded-lg p-2 mb-3">
