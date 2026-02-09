@@ -1089,6 +1089,39 @@ export default function OLTippingApp() {
     };
   }, []);
 
+  // Re-sync når appen kommer tilbake i fokus (viktig for PWA)
+  useEffect(() => {
+    let lastHiddenTime = null;
+    
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        lastHiddenTime = Date.now();
+      } else if (document.visibilityState === 'visible') {
+        // Hvis appen har vært skjult i mer enn 30 sekunder, reload for å sikre fresh data
+        if (lastHiddenTime && (Date.now() - lastHiddenTime > 30000)) {
+          console.log('App var i bakgrunnen lenge - reloader for fresh data...');
+          window.location.reload();
+        }
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    // For iOS PWA - lytt også til pageshow event
+    const handlePageShow = (event) => {
+      if (event.persisted) {
+        console.log('Side gjenopprettet fra cache - reloader...');
+        window.location.reload();
+      }
+    };
+    window.addEventListener('pageshow', handlePageShow);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('pageshow', handlePageShow);
+    };
+  }, []);
+
   // Lagre synlighetsinnstillinger til Firebase
   const saveSynlighetToFirebase = async (dager, gullTips, låst = påmeldingLåst) => {
     try {
