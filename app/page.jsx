@@ -849,6 +849,104 @@ function isKnownName(name, sport, type) {
   return allKnown.some(known => fuzzyMatch(name, known).match);
 }
 
+// Optimalisert resultat-input for admin (debounced for ytelse)
+const ResultatInput = React.memo(function ResultatInput({ value, onChange, suggestions, placeholder, className }) {
+  const [localValue, setLocalValue] = useState(value);
+  const [isOpen, setIsOpen] = useState(false);
+  const [filtered, setFiltered] = useState([]);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const ref = useRef(null);
+  const debounceRef = useRef(null);
+
+  // Sync fra parent når value endres eksternt
+  useEffect(() => {
+    setLocalValue(value);
+  }, [value]);
+
+  useEffect(() => {
+    if (localValue && localValue.length >= 2) {
+      const matches = suggestions.filter(s => s.toLowerCase().includes(localValue.toLowerCase())).slice(0, 6);
+      setFiltered(matches);
+      setIsOpen(matches.length > 0);
+      setSelectedIndex(-1);
+    } else {
+      setFiltered([]);
+      setIsOpen(false);
+    }
+  }, [localValue, suggestions]);
+
+  useEffect(() => {
+    const handleClick = (e) => { 
+      if (ref.current && !ref.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const handleChange = (newValue) => {
+    setLocalValue(newValue);
+    // Debounce oppdatering til parent
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      onChange(newValue);
+    }, 300);
+  };
+
+  const selectItem = (item) => {
+    setLocalValue(item);
+    onChange(item); // Umiddelbar oppdatering ved valg
+    setIsOpen(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (!isOpen || filtered.length === 0) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev < filtered.length - 1 ? prev + 1 : prev));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev > 0 ? prev - 1 : prev));
+    } else if (e.key === 'Enter' && selectedIndex >= 0) {
+      e.preventDefault();
+      selectItem(filtered[selectedIndex]);
+    } else if (e.key === 'Escape') {
+      setIsOpen(false);
+    }
+  };
+
+  return (
+    <div className="relative flex-1" ref={ref}>
+      <input
+        type="text"
+        value={localValue}
+        onChange={(e) => handleChange(e.target.value)}
+        onFocus={() => filtered.length > 0 && setIsOpen(true)}
+        onBlur={() => {
+          // Sikre at parent får siste verdi ved blur
+          if (debounceRef.current) {
+            clearTimeout(debounceRef.current);
+            onChange(localValue);
+          }
+        }}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        className={className}
+      />
+      {isOpen && filtered.length > 0 && (
+        <div className="absolute z-50 w-full mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+          {filtered.map((item, i) => (
+            <button key={item} type="button" onMouseDown={() => selectItem(item)} className={`w-full text-left px-3 py-2 text-sm ${i === selectedIndex ? 'bg-cyan-600 text-white' : 'text-slate-200 hover:bg-slate-700'}`}>
+              {item}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
 // Autocomplete
 function AutocompleteInput({ value, onChange, suggestions, placeholder, className }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -999,7 +1097,7 @@ export default function OLTippingApp() {
   const [studioLoginNavn, setStudioLoginNavn] = useState('');
   const [studioLoginPin, setStudioLoginPin] = useState('');
   const [studioLoginError, setStudioLoginError] = useState('');
-  const [rememberMe, setRememberMe] = useState(false); // Husk meg checkbox
+  const [rememberMe, setRememberMe] = useState(true); // Husk meg checkbox - default på
   const [showMobileChat, setShowMobileChat] = useState(false); // Mobil chat modal
   const [editingLiveFeedId, setEditingLiveFeedId] = useState(null); // Redigerer live-innlegg
   const [editingLiveFeedContent, setEditingLiveFeedContent] = useState('');
@@ -3504,7 +3602,7 @@ export default function OLTippingApp() {
                                     pos === 3 ? 'bg-orange-500 text-orange-900' :
                                     'bg-slate-600 text-white'
                                   }`}>{pos}</span>
-                                  <AutocompleteInput
+                                  <ResultatInput
                                     value={resultater[ø.idx]?.[pos-1] || ''}
                                     onChange={(val) => {
                                       const newRes = [...(resultater[ø.idx] || [])];
