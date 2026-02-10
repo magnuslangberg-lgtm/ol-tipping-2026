@@ -3493,7 +3493,7 @@ export default function OLTippingApp() {
                                 {editingDeltaker?.id === selectedDeltaker.id ? (
                                   // Redigeringsmodus
                                   (ø.type === 'individuell' ? [0,1,2,3,4] : [0,1,2]).map((i) => (
-                                    <AutocompleteInput
+                                    <ResultatInput
                                       key={i}
                                       value={editingDeltaker.tips[ø.idx]?.[i] || ''}
                                       onChange={(val) => {
