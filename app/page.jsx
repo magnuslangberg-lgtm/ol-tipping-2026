@@ -754,9 +754,26 @@ function fuzzyMatch(name1, name2) {
   
   // Hvis ett av navnene er bare etternavn OG det er et unikt etternavn
   // (ikke søsken-etternavn som Oftebro, Bø, Tandrevold, etc.)
-  const søskenEtternavn = ['oftebro', 'bø', 'tandrevold', 'rettenegger', 'takagi', 'prevc', 'kramer'];
-  const erSøskenEtternavn = søskenEtternavn.includes(normalizeForMatch(lastName1)) || 
-                            søskenEtternavn.includes(normalizeForMatch(lastName2));
+  const søskenEtternavn = ['oftebro', 'luras oftebro', 'lurås oftebro', 'bø', 'thingnes bø', 'tandrevold', 'landmark tandrevold', 'rettenegger', 'takagi', 'prevc', 'kramer', 'weng', 'udnes weng'];
+  const normLastName1 = normalizeForMatch(lastName1);
+  const normLastName2 = normalizeForMatch(lastName2);
+  // Sjekk om etternavnet (eller hele navnet minus fornavn) er et søsken-etternavn
+  const fullLastName1 = parts1.slice(1).join(' ').toLowerCase();
+  const fullLastName2 = parts2.slice(1).join(' ').toLowerCase();
+  const erSøskenEtternavn = søskenEtternavn.some(s => 
+    normLastName1.includes(s) || normLastName2.includes(s) ||
+    normalizeForMatch(fullLastName1).includes(s) || normalizeForMatch(fullLastName2).includes(s)
+  );
+  
+  // VIKTIG: Hvis begge har fulle navn (fornavn + etternavn) og er søsken, IKKE match med mindre fornavn er likt
+  if (erSøskenEtternavn && parts1.length > 1 && parts2.length > 1) {
+    // Begge har fulle navn - sjekk om fornavn er likt
+    if (firstName1.toLowerCase() !== firstName2.toLowerCase() && 
+        normalizeForMatch(firstName1) !== normalizeForMatch(firstName2)) {
+      // Forskjellige fornavn på søsken = IKKE samme person
+      return { match: false, score: 0 };
+    }
+  }
   
   if (parts1.length === 1 && lastName1.length > 2 && !erSøskenEtternavn) {
     if (lastName1 === lastName2) return { match: true, score: 0.92 };
@@ -1120,7 +1137,7 @@ export default function OLTippingApp() {
   const [studioLoginNavn, setStudioLoginNavn] = useState('');
   const [studioLoginPin, setStudioLoginPin] = useState('');
   const [studioLoginError, setStudioLoginError] = useState('');
-  const [rememberMe, setRememberMe] = useState(false); // Husk meg checkbox - valgfritt
+  const [rememberMe, setRememberMe] = useState(true); // Alltid husk innlogging
   const [showMobileChat, setShowMobileChat] = useState(false); // Mobil chat modal
   const [editingLiveFeedId, setEditingLiveFeedId] = useState(null); // Redigerer live-innlegg
   const [editingLiveFeedContent, setEditingLiveFeedContent] = useState('');
@@ -1414,7 +1431,7 @@ export default function OLTippingApp() {
     }
   };
 
-  const handleStudioLogin = (rememberMe = false) => {
+  const handleStudioLogin = () => {
     const deltaker = alleTips.find(d => 
       d.navn.toLowerCase() === studioLoginNavn.toLowerCase() && 
       (d.pin === studioLoginPin || genererPin(d.navn) === studioLoginPin)
@@ -1422,13 +1439,11 @@ export default function OLTippingApp() {
     if (deltaker) {
       setStudioLoggedIn(deltaker);
       setStudioLoginError('');
-      // Lagre til localStorage hvis "husk meg" er valgt
-      if (rememberMe) {
-        localStorage.setItem('olTipping_rememberedUser', JSON.stringify({
-          navn: deltaker.navn,
-          pin: studioLoginPin
-        }));
-      }
+      // Alltid lagre til localStorage for auto-innlogging
+      localStorage.setItem('olTipping_rememberedUser', JSON.stringify({
+        navn: deltaker.navn,
+        pin: studioLoginPin
+      }));
       setStudioLoginNavn('');
       setStudioLoginPin('');
     } else {
@@ -2452,13 +2467,9 @@ export default function OLTippingApp() {
                       <p className="text-slate-400 text-xs">Logg inn for å skrive:</p>
                       <input type="text" value={studioLoginNavn} onChange={(e) => setStudioLoginNavn(e.target.value)} placeholder="Lagnavn..." className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm" />
                       <div className="flex gap-2">
-                        <input type="password" value={studioLoginPin} onChange={(e) => setStudioLoginPin(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleStudioLogin(rememberMe)} placeholder="PIN..." className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm" />
-                        <button onClick={() => handleStudioLogin(rememberMe)} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg text-sm">→</button>
+                        <input type="password" value={studioLoginPin} onChange={(e) => setStudioLoginPin(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleStudioLogin()} placeholder="PIN..." className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm" />
+                        <button onClick={() => handleStudioLogin()} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg text-sm">→</button>
                       </div>
-                      <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer">
-                        <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="w-3 h-3 rounded border-slate-500 bg-slate-800 text-cyan-500" />
-                        Husk meg
-                      </label>
                       {studioLoginError && <p className="text-red-400 text-xs">{studioLoginError}</p>}
                     </div>
                   ) : (
@@ -3774,13 +3785,9 @@ export default function OLTippingApp() {
                 <p className="text-slate-400 text-xs">Logg inn for å skrive:</p>
                 <div className="flex gap-2">
                   <input type="text" value={studioLoginNavn} onChange={(e) => setStudioLoginNavn(e.target.value)} placeholder="Lagnavn..." className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm" />
-                  <input type="password" value={studioLoginPin} onChange={(e) => setStudioLoginPin(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleStudioLogin(rememberMe)} placeholder="PIN..." className="w-20 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm" />
-                  <button onClick={() => handleStudioLogin(rememberMe)} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg">→</button>
+                  <input type="password" value={studioLoginPin} onChange={(e) => setStudioLoginPin(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleStudioLogin()} placeholder="PIN..." className="w-20 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm" />
+                  <button onClick={() => handleStudioLogin()} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg">→</button>
                 </div>
-                <label className="flex items-center gap-2 text-xs text-slate-400 cursor-pointer">
-                  <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="w-3 h-3 rounded border-slate-500 bg-slate-800 text-cyan-500" />
-                  Husk meg
-                </label>
                 {studioLoginError && <p className="text-red-400 text-xs">{studioLoginError}</p>}
               </div>
             ) : (
