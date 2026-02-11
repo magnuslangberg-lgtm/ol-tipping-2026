@@ -99,19 +99,19 @@ async function downloadExcelTemplate() {
     [9, 'Hopp, stor bakke - kvinner', 'IND'],
     [10, 'Alpint, slalåm - menn', 'IND'],
     [10, 'Hopp, lagkonkurranse stor bakke - menn', 'LAG'],
-    [10, 'Freeski, big air - menn', 'IND'],
+    [12, 'Freeski, big air - menn', 'IND'],
     [11, 'Skiskyting, stafett - menn', 'LAG'],
     [12, 'Alpint, slalåm - kvinner', 'IND'],
     [12, 'Skiskyting, stafett - kvinner', 'LAG'],
     [12, 'Langrenn, lagsprint - kvinner', 'LAG'],
     [12, 'Langrenn, lagsprint - menn', 'LAG'],
-    [13, 'Kombinert, stor bakke/10 km - menn', 'IND'],
-    [13, 'Skiskyting, 15 km fellesstart - menn', 'IND'],
+    [11, 'Kombinert, stor bakke/10 km - menn', 'IND'],
+    [14, 'Skiskyting, 15 km fellesstart - menn', 'IND'],
     [13, 'Skøyter, 1500m - menn', 'IND'],
-    [13, 'Skøyter, 1500m - kvinner', 'IND'],
-    [14, 'Kombinert, lagkonkurranse - menn', 'LAG'],
-    [14, 'Skiskyting, 12,5 km fellesstart - kvinner', 'IND'],
-    [14, 'Skøyter, lagtempo - menn', 'LAG'],
+    [14, 'Skøyter, 1500m - kvinner', 'IND'],
+    [13, 'Kombinert, lagkonkurranse - menn', 'LAG'],
+    [15, 'Skiskyting, 12,5 km fellesstart - kvinner', 'IND'],
+    [11, 'Skøyter, lagtempo - menn', 'LAG'],
     [15, 'Langrenn, 50 km fellesstart - menn', 'IND'],
     [15, 'Curling, finale - menn', 'LAG'],
     [16, 'Langrenn, 50 km fellesstart - kvinner', 'IND'],
@@ -371,7 +371,7 @@ const OL_PROGRAM = [
   // DAG 10 - Mandag 16. februar
   { dag: 10, dato: "Man 16. feb", tid: "10:00", øvelse: "Alpint, slalåm - menn", type: "individuell", sport: "alpint" },
   { dag: 10, dato: "Man 16. feb", tid: "18:00", øvelse: "Hopp, lagkonkurranse stor bakke - menn", type: "lag", sport: "hopp" },
-  { dag: 10, dato: "Man 16. feb", tid: "12:00", øvelse: "Freeski, big air - menn", type: "individuell", sport: "freeski" },
+  { dag: 12, dato: "Ons 18. feb", tid: "19:30", øvelse: "Freeski, big air - menn", type: "individuell", sport: "freeski" },
   
   // DAG 11 - Tirsdag 17. februar
   { dag: 11, dato: "Tir 17. feb", tid: "14:30", øvelse: "Skiskyting, stafett - menn", type: "lag", sport: "skiskyting" },
@@ -383,15 +383,15 @@ const OL_PROGRAM = [
   { dag: 12, dato: "Ons 18. feb", tid: "11:45", øvelse: "Langrenn, lagsprint - menn", type: "lag", sport: "langrenn" },
   
   // DAG 13 - Torsdag 19. februar
-  { dag: 13, dato: "Tor 19. feb", tid: "10:00", øvelse: "Kombinert, stor bakke/10 km - menn", type: "individuell", sport: "kombinert" },
-  { dag: 13, dato: "Tor 19. feb", tid: "14:30", øvelse: "Skiskyting, 15 km fellesstart - menn", type: "individuell", sport: "skiskyting" },
+  { dag: 11, dato: "Tir 17. feb", tid: "10:00", øvelse: "Kombinert, stor bakke/10 km - menn", type: "individuell", sport: "kombinert" },
+  { dag: 14, dato: "Fre 20. feb", tid: "14:30", øvelse: "Skiskyting, 15 km fellesstart - menn", type: "individuell", sport: "skiskyting" },
   { dag: 13, dato: "Tor 19. feb", tid: "15:00", øvelse: "Skøyter, 1500m - menn", type: "individuell", sport: "skøyter" },
-  { dag: 13, dato: "Tor 19. feb", tid: "17:30", øvelse: "Skøyter, 1500m - kvinner", type: "individuell", sport: "skøyter" },
+  { dag: 14, dato: "Fre 20. feb", tid: "17:30", øvelse: "Skøyter, 1500m - kvinner", type: "individuell", sport: "skøyter" },
   
   // DAG 14 - Fredag 20. februar
-  { dag: 14, dato: "Fre 20. feb", tid: "10:00", øvelse: "Kombinert, lagkonkurranse - menn", type: "lag", sport: "kombinert" },
-  { dag: 14, dato: "Fre 20. feb", tid: "14:30", øvelse: "Skiskyting, 12,5 km fellesstart - kvinner", type: "individuell", sport: "skiskyting" },
-  { dag: 14, dato: "Fre 20. feb", tid: "16:00", øvelse: "Skøyter, lagtempo - menn", type: "lag", sport: "skøyter" },
+  { dag: 13, dato: "Tor 19. feb", tid: "10:00", øvelse: "Kombinert, lagkonkurranse - menn", type: "lag", sport: "kombinert" },
+  { dag: 15, dato: "Lør 21. feb", tid: "14:30", øvelse: "Skiskyting, 12,5 km fellesstart - kvinner", type: "individuell", sport: "skiskyting" },
+  { dag: 11, dato: "Tir 17. feb", tid: "16:00", øvelse: "Skøyter, lagtempo - menn", type: "lag", sport: "skøyter" },
   
   // DAG 15 - Lørdag 21. februar
   { dag: 15, dato: "Lør 21. feb", tid: "11:00", øvelse: "Langrenn, 50 km fellesstart - menn", type: "individuell", sport: "langrenn" },
