@@ -549,7 +549,7 @@ const UTØVERE = {
   ],
   kombinert: [
     // Norge
-    "Jarl Magnus Riiber", "Jens Lurås Oftebro", "Espen Bjørnstad", "Jørgen Graabak",
+    "Jarl Magnus Riiber", "Jens Lurås Oftebro", "Einar Lurås Oftebro", "Espen Bjørnstad", "Jørgen Graabak",
     "Ida Marie Hagen", "Gyda Westvold Hansen", "Mari Leinan Lund",
     // Tyskland
     "Vinzenz Geiger", "Johannes Rydzek", "Julian Schmid", "Terence Weber", "Eric Frenzel",
@@ -721,15 +721,21 @@ function fuzzyMatch(name1, name2) {
   const n2 = normalizeForMatch(name2);
   if (n1 === n2) return { match: true, score: 0.98 };
   
-  // En inneholder den andre
-  if (s1.includes(s2) || s2.includes(s1)) return { match: true, score: 0.9 };
-  if (n1.includes(n2) || n2.includes(n1)) return { match: true, score: 0.88 };
+  // En inneholder den andre - men vær strengere på korte strenger
+  if (s1.length > 10 && s2.length > 10) {
+    if (s1.includes(s2) || s2.includes(s1)) return { match: true, score: 0.9 };
+  }
+  if (n1.length > 10 && n2.length > 10) {
+    if (n1.includes(n2) || n2.includes(n1)) return { match: true, score: 0.88 };
+  }
   
   // Etternavn-match (Klæbo matcher Johannes Høsflot Klæbo)
   const parts1 = s1.split(' ');
   const parts2 = s2.split(' ');
   const lastName1 = parts1[parts1.length - 1];
   const lastName2 = parts2[parts2.length - 1];
+  const firstName1 = parts1[0] || '';
+  const firstName2 = parts2[0] || '';
   
   // Sjekk for reverserte navn (Su Yiming vs Yiming Su)
   const sorted1 = [...parts1].sort().join(' ');
@@ -746,19 +752,36 @@ function fuzzyMatch(name1, name2) {
   const sortedSimilarity = 1 - (sortedDistance / Math.max(normParts1.length, normParts2.length));
   if (sortedSimilarity >= 0.85) return { match: true, score: sortedSimilarity * 0.95 };
   
-  // Hvis ett av navnene er bare etternavn, og det matcher
-  if (parts1.length === 1 && lastName1.length > 2) {
+  // Hvis ett av navnene er bare etternavn OG det er et unikt etternavn
+  // (ikke søsken-etternavn som Oftebro, Bø, Tandrevold, etc.)
+  const søskenEtternavn = ['oftebro', 'bø', 'tandrevold', 'rettenegger', 'takagi', 'prevc', 'kramer'];
+  const erSøskenEtternavn = søskenEtternavn.includes(normalizeForMatch(lastName1)) || 
+                            søskenEtternavn.includes(normalizeForMatch(lastName2));
+  
+  if (parts1.length === 1 && lastName1.length > 2 && !erSøskenEtternavn) {
     if (lastName1 === lastName2) return { match: true, score: 0.92 };
     if (normalizeForMatch(lastName1) === normalizeForMatch(lastName2)) return { match: true, score: 0.90 };
   }
-  if (parts2.length === 1 && lastName2.length > 2) {
+  if (parts2.length === 1 && lastName2.length > 2 && !erSøskenEtternavn) {
     if (lastName1 === lastName2) return { match: true, score: 0.92 };
     if (normalizeForMatch(lastName1) === normalizeForMatch(lastName2)) return { match: true, score: 0.90 };
   }
   
-  // Generell etternavn-match
-  if (lastName1 === lastName2 && lastName1.length > 3) return { match: true, score: 0.85 };
-  if (normalizeForMatch(lastName1) === normalizeForMatch(lastName2) && lastName1.length > 3) return { match: true, score: 0.83 };
+  // Generell etternavn-match - MÅ ha matchende fornavn-initial for søsken
+  if (lastName1 === lastName2 && lastName1.length > 3) {
+    if (erSøskenEtternavn) {
+      // For søsken: krev at fornavn starter likt
+      if (firstName1[0]?.toLowerCase() === firstName2[0]?.toLowerCase()) {
+        return { match: true, score: 0.85 };
+      }
+      // Ellers ingen match bare på etternavn
+    } else {
+      return { match: true, score: 0.85 };
+    }
+  }
+  if (normalizeForMatch(lastName1) === normalizeForMatch(lastName2) && lastName1.length > 3 && !erSøskenEtternavn) {
+    return { match: true, score: 0.83 };
+  }
   
   // Levenshtein distance for skrivefeil
   const distance = levenshteinDistance(n1, n2);
@@ -1097,7 +1120,7 @@ export default function OLTippingApp() {
   const [studioLoginNavn, setStudioLoginNavn] = useState('');
   const [studioLoginPin, setStudioLoginPin] = useState('');
   const [studioLoginError, setStudioLoginError] = useState('');
-  const [rememberMe, setRememberMe] = useState(true); // Husk meg checkbox - default på
+  const [rememberMe, setRememberMe] = useState(false); // Husk meg checkbox - valgfritt
   const [showMobileChat, setShowMobileChat] = useState(false); // Mobil chat modal
   const [editingLiveFeedId, setEditingLiveFeedId] = useState(null); // Redigerer live-innlegg
   const [editingLiveFeedContent, setEditingLiveFeedContent] = useState('');
