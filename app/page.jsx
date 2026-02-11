@@ -1196,6 +1196,168 @@ const IsolatedAutocomplete = React.memo(function IsolatedAutocomplete({
          prevProps.suggestions === nextProps.suggestions;
 });
 
+// Isolert tekst-input som ikke trigger parent re-render
+const IsolatedInput = React.memo(function IsolatedInput({ 
+  initialValue = '', 
+  onCommit, 
+  placeholder, 
+  className, 
+  type = 'text',
+  onEnter
+}) {
+  const [localValue, setLocalValue] = useState(initialValue);
+  
+  useEffect(() => {
+    setLocalValue(initialValue);
+  }, [initialValue]);
+
+  return (
+    <input
+      type={type}
+      value={localValue}
+      onChange={(e) => setLocalValue(e.target.value)}
+      onBlur={() => onCommit && onCommit(localValue)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' && onEnter) {
+          onEnter(localValue);
+        }
+      }}
+      placeholder={placeholder}
+      className={className}
+    />
+  );
+});
+
+// Isolert admin innlogging - hele komponenten er isolert
+const AdminLogin = React.memo(function AdminLogin({ onLogin, correctPassword }) {
+  const [password, setPassword] = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [error, setError] = useState('');
+
+  const tryLogin = () => {
+    if (password === correctPassword) {
+      onLogin(true);
+      setError('');
+    } else {
+      setError('Feil passord!');
+    }
+  };
+
+  return (
+    <div className="max-w-sm mx-auto bg-slate-800/50 rounded-xl p-6 border border-slate-700">
+      <Lock className="w-10 h-10 text-cyan-400 mx-auto mb-3" />
+      <h2 className="text-lg font-bold text-white text-center mb-4">Admin</h2>
+      <div className="relative mb-3">
+        <input 
+          type={showPw ? 'text' : 'password'} 
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          onKeyPress={(e) => e.key === 'Enter' && tryLogin()}
+          placeholder="Passord..." 
+          className="w-full px-4 py-2 pr-10 bg-slate-900 border border-slate-600 rounded-lg text-white" 
+        />
+        <button onClick={() => setShowPw(!showPw)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
+          {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+        </button>
+      </div>
+      {error && <p className="text-red-400 text-sm mb-2">{error}</p>}
+      <button onClick={tryLogin} className="w-full py-2 bg-cyan-600 text-white rounded-lg font-semibold">
+        Logg inn
+      </button>
+    </div>
+  );
+});
+
+// Isolert studio innlogging for OL Live chat
+const StudioLoginForm = React.memo(function StudioLoginForm({ onLogin, alleTips, genererPin }) {
+  const [navn, setNavn] = useState('');
+  const [pin, setPin] = useState('');
+  const [error, setError] = useState('');
+
+  const tryLogin = () => {
+    const deltaker = alleTips.find(d => 
+      d.navn.toLowerCase() === navn.toLowerCase() && 
+      (d.pin === pin || genererPin(d.navn) === pin)
+    );
+    if (deltaker) {
+      onLogin(deltaker, pin);
+      setError('');
+    } else {
+      setError('Feil lagnavn eller PIN');
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <p className="text-slate-400 text-xs">Logg inn for å skrive:</p>
+      <input 
+        type="text" 
+        value={navn} 
+        onChange={(e) => setNavn(e.target.value)} 
+        placeholder="Lagnavn..." 
+        className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm" 
+      />
+      <div className="flex gap-2">
+        <input 
+          type="password" 
+          value={pin} 
+          onChange={(e) => setPin(e.target.value)} 
+          onKeyPress={(e) => e.key === 'Enter' && tryLogin()}
+          placeholder="PIN..." 
+          className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm" 
+        />
+        <button onClick={tryLogin} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg text-sm">→</button>
+      </div>
+      {error && <p className="text-red-400 text-xs">{error}</p>}
+    </div>
+  );
+});
+
+// Mobil versjon av studio innlogging
+const StudioLoginFormMobile = React.memo(function StudioLoginFormMobile({ onLogin, alleTips, genererPin }) {
+  const [navn, setNavn] = useState('');
+  const [pin, setPin] = useState('');
+  const [error, setError] = useState('');
+
+  const tryLogin = () => {
+    const deltaker = alleTips.find(d => 
+      d.navn.toLowerCase() === navn.toLowerCase() && 
+      (d.pin === pin || genererPin(d.navn) === pin)
+    );
+    if (deltaker) {
+      onLogin(deltaker, pin);
+      setError('');
+    } else {
+      setError('Feil lagnavn eller PIN');
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <p className="text-slate-400 text-xs">Logg inn for å skrive:</p>
+      <div className="flex gap-2">
+        <input 
+          type="text" 
+          value={navn} 
+          onChange={(e) => setNavn(e.target.value)} 
+          placeholder="Lagnavn..." 
+          className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm" 
+        />
+        <input 
+          type="password" 
+          value={pin} 
+          onChange={(e) => setPin(e.target.value)} 
+          onKeyPress={(e) => e.key === 'Enter' && tryLogin()}
+          placeholder="PIN..." 
+          className="w-20 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm" 
+        />
+        <button onClick={tryLogin} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg">→</button>
+      </div>
+      {error && <p className="text-red-400 text-xs">{error}</p>}
+    </div>
+  );
+});
+
 // Autocomplete
 function AutocompleteInput({ value, onChange, suggestions, placeholder, className }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -2668,15 +2830,14 @@ export default function OLTippingApp() {
                   
                   {/* Innlogging/Skriv */}
                   {!studioLoggedIn && !isAdminLoggedIn && !loggedInDeltaker ? (
-                    <div className="space-y-2">
-                      <p className="text-slate-400 text-xs">Logg inn for å skrive:</p>
-                      <input type="text" value={studioLoginNavn} onChange={(e) => setStudioLoginNavn(e.target.value)} placeholder="Lagnavn..." className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm" />
-                      <div className="flex gap-2">
-                        <input type="password" value={studioLoginPin} onChange={(e) => setStudioLoginPin(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleStudioLogin()} placeholder="PIN..." className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm" />
-                        <button onClick={() => handleStudioLogin()} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg text-sm">→</button>
-                      </div>
-                      {studioLoginError && <p className="text-red-400 text-xs">{studioLoginError}</p>}
-                    </div>
+                    <StudioLoginForm 
+                      onLogin={(deltaker, pin) => {
+                        setStudioLoggedIn(deltaker);
+                        localStorage.setItem('olTipping_rememberedUser', JSON.stringify({ navn: deltaker.navn, pin }));
+                      }} 
+                      alleTips={alleTips} 
+                      genererPin={genererPin} 
+                    />
                   ) : (
                     <>
                       <div className="flex items-center justify-between mb-2 text-xs">
@@ -3287,22 +3448,7 @@ export default function OLTippingApp() {
         {view === 'admin' && (
           <div className="space-y-4">
             {!isAdminLoggedIn ? (
-              <div className="max-w-sm mx-auto bg-slate-800/50 rounded-xl p-6 border border-slate-700">
-                <Lock className="w-10 h-10 text-cyan-400 mx-auto mb-3" />
-                <h2 className="text-lg font-bold text-white text-center mb-4">Admin</h2>
-                <div className="relative mb-3">
-                  <input type={showPassword ? 'text' : 'password'} value={adminPassword}
-                    onChange={(e) => setAdminPassword(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && (adminPassword === ADMIN_PASSWORD ? (setIsAdminLoggedIn(true), setAdminError('')) : setAdminError('Feil!'))}
-                    placeholder="Passord..." className="w-full px-4 py-2 pr-10 bg-slate-900 border border-slate-600 rounded-lg text-white" />
-                  <button onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
-                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-                {adminError && <p className="text-red-400 text-sm mb-2">{adminError}</p>}
-                <button onClick={() => adminPassword === ADMIN_PASSWORD ? (setIsAdminLoggedIn(true), setAdminError('')) : setAdminError('Feil passord!')}
-                  className="w-full py-2 bg-cyan-600 text-white rounded-lg font-semibold">Logg inn</button>
-              </div>
+              <AdminLogin onLogin={setIsAdminLoggedIn} correctPassword={ADMIN_PASSWORD} />
             ) : (
               <>
                 <div className="flex justify-between items-center">
@@ -3543,21 +3689,19 @@ export default function OLTippingApp() {
                                 <div className="flex gap-2">
                                   <div className="flex-1">
                                     <label className="text-xs text-cyan-300 block mb-1">Lagnavn:</label>
-                                    <input
-                                      type="text"
-                                      value={editLagnavn}
-                                      onChange={(e) => setEditLagnavn(e.target.value)}
+                                    <IsolatedInput
+                                      initialValue={editLagnavn}
+                                      onCommit={(val) => setEditLagnavn(val)}
                                       className="w-full px-2 py-1 bg-slate-900 border border-slate-600 rounded text-white text-sm"
                                     />
                                   </div>
                                   <div className="flex-1">
                                     <label className="text-xs text-cyan-300 block mb-1">Faktisk navn:</label>
-                                    <input
-                                      type="text"
-                                      value={editFaktiskNavn}
-                                      onChange={(e) => setEditFaktiskNavn(e.target.value)}
-                                      className="w-full px-2 py-1 bg-slate-900 border border-slate-600 rounded text-white text-sm"
+                                    <IsolatedInput
+                                      initialValue={editFaktiskNavn}
+                                      onCommit={(val) => setEditFaktiskNavn(val)}
                                       placeholder="F.eks. Ola Nordmann"
+                                      className="w-full px-2 py-1 bg-slate-900 border border-slate-600 rounded text-white text-sm"
                                     />
                                   </div>
                                 </div>
@@ -3983,15 +4127,14 @@ export default function OLTippingApp() {
           {/* Input boks */}
           <div className="p-4 border-t border-slate-700 bg-slate-900">
             {!studioLoggedIn && !isAdminLoggedIn && !loggedInDeltaker ? (
-              <div className="space-y-2">
-                <p className="text-slate-400 text-xs">Logg inn for å skrive:</p>
-                <div className="flex gap-2">
-                  <input type="text" value={studioLoginNavn} onChange={(e) => setStudioLoginNavn(e.target.value)} placeholder="Lagnavn..." className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm" />
-                  <input type="password" value={studioLoginPin} onChange={(e) => setStudioLoginPin(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && handleStudioLogin()} placeholder="PIN..." className="w-20 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm" />
-                  <button onClick={() => handleStudioLogin()} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 text-white font-semibold rounded-lg">→</button>
-                </div>
-                {studioLoginError && <p className="text-red-400 text-xs">{studioLoginError}</p>}
-              </div>
+              <StudioLoginFormMobile 
+                onLogin={(deltaker, pin) => {
+                  setStudioLoggedIn(deltaker);
+                  localStorage.setItem('olTipping_rememberedUser', JSON.stringify({ navn: deltaker.navn, pin }));
+                }} 
+                alleTips={alleTips} 
+                genererPin={genererPin} 
+              />
             ) : (
               <ChatInput onSend={sendLiveFeedPost} placeholder="Skriv melding... (Shift+Enter for linjeskift)" />
             )}
