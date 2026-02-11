@@ -1229,27 +1229,22 @@ export default function OLTippingApp() {
   }, []);
 
   // Re-sync når appen kommer tilbake i fokus (viktig for PWA)
+  // Firebase onSnapshot holder data synkronisert, så vi trenger ikke reload
   useEffect(() => {
-    let lastHiddenTime = null;
-    
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'hidden') {
-        lastHiddenTime = Date.now();
-      } else if (document.visibilityState === 'visible') {
-        // Hvis appen har vært skjult i mer enn 30 sekunder, reload for å sikre fresh data
-        if (lastHiddenTime && (Date.now() - lastHiddenTime > 30000)) {
-          console.log('App var i bakgrunnen lenge - reloader for fresh data...');
-          window.location.reload();
-        }
+      if (document.visibilityState === 'visible') {
+        console.log('App tilbake i fokus - Firebase holder data synkronisert');
+        // Ingen reload nødvendig - onSnapshot lytterne er fortsatt aktive
       }
     };
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     
-    // For iOS PWA - lytt også til pageshow event
+    // For iOS PWA - pageshow med persisted betyr at siden ble gjenopprettet fra bfcache
+    // I dette tilfellet kan Firebase-tilkoblingen være død, så vi reloader
     const handlePageShow = (event) => {
       if (event.persisted) {
-        console.log('Side gjenopprettet fra cache - reloader...');
+        console.log('Side gjenopprettet fra bfcache - reloader...');
         window.location.reload();
       }
     };
