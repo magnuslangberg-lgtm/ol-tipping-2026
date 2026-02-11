@@ -987,6 +987,43 @@ const ResultatInput = React.memo(function ResultatInput({ value, onChange, sugge
   );
 });
 
+// Optimalisert chat-input som ikke trigger re-render av hele appen
+const ChatInput = React.memo(function ChatInput({ onSend, placeholder }) {
+  const [localValue, setLocalValue] = useState('');
+  
+  const handleSend = () => {
+    if (localValue.trim()) {
+      onSend(localValue.trim());
+      setLocalValue('');
+    }
+  };
+  
+  return (
+    <div className="flex gap-2 items-end">
+      <textarea
+        value={localValue}
+        onChange={(e) => setLocalValue(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            handleSend();
+          }
+        }}
+        placeholder={placeholder || "Skriv melding... (Shift+Enter for linjeskift)"}
+        className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white resize-none min-h-[60px] max-h-[120px]"
+        rows={2}
+      />
+      <button 
+        onClick={handleSend} 
+        disabled={!localValue.trim()} 
+        className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-700 text-white rounded-lg h-[60px]"
+      >
+        <Send className="w-5 h-5" />
+      </button>
+    </div>
+  );
+});
+
 // Autocomplete
 function AutocompleteInput({ value, onChange, suggestions, placeholder, className }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -1367,14 +1404,15 @@ export default function OLTippingApp() {
     }
   };
 
-  const sendLiveFeedPost = async () => {
+  const sendLiveFeedPost = async (message) => {
     const authorName = isAdminLoggedIn ? 'Admin' : (studioLoggedIn?.navn || loggedInDeltaker?.navn);
-    if (!newLiveFeedPost.trim() || !authorName) return;
+    const content = message || newLiveFeedPost;
+    if (!content.trim() || !authorName) return;
     try {
       const postId = Date.now().toString();
       await setDoc(doc(db, 'livefeed', postId), {
         id: postId,
-        content: newLiveFeedPost.trim(),
+        content: content.trim(),
         author: authorName,
         authorId: isAdminLoggedIn ? 'admin' : (studioLoggedIn?.id || loggedInDeltaker?.id),
         timestamp: Date.now(),
@@ -2473,10 +2511,7 @@ export default function OLTippingApp() {
                         <span className="text-green-400">💬 {isAdminLoggedIn ? 'Admin' : (studioLoggedIn?.navn || loggedInDeltaker?.navn)}</span>
                         {!isAdminLoggedIn && <button onClick={handleLogout} className="text-red-400 hover:text-red-300">Logg ut</button>}
                       </div>
-                      <div className="flex gap-2">
-                        <input type="text" value={newLiveFeedPost} onChange={(e) => setNewLiveFeedPost(e.target.value)} onKeyPress={(e) => e.key === 'Enter' && sendLiveFeedPost()} placeholder="Skriv melding..." className="flex-1 px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white text-sm" />
-                        <button onClick={sendLiveFeedPost} disabled={!newLiveFeedPost.trim()} className="px-3 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-700 text-white rounded-lg"><Send className="w-4 h-4" /></button>
-                      </div>
+                      <ChatInput onSend={sendLiveFeedPost} placeholder="Skriv melding... (Shift+Enter for linjeskift)" />
                     </>
                   )}
                 </div>
@@ -3786,19 +3821,7 @@ export default function OLTippingApp() {
                 {studioLoginError && <p className="text-red-400 text-xs">{studioLoginError}</p>}
               </div>
             ) : (
-              <div className="flex gap-2">
-                <input
-                  type="text"
-                  value={newLiveFeedPost}
-                  onChange={(e) => setNewLiveFeedPost(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && sendLiveFeedPost()}
-                  placeholder="Skriv melding..."
-                  className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white"
-                />
-                <button onClick={sendLiveFeedPost} disabled={!newLiveFeedPost.trim()} className="px-4 py-2 bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-700 text-white rounded-lg">
-                  <Send className="w-5 h-5" />
-                </button>
-              </div>
+              <ChatInput onSend={sendLiveFeedPost} placeholder="Skriv melding... (Shift+Enter for linjeskift)" />
             )}
           </div>
         </div>
