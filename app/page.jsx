@@ -84,7 +84,7 @@ async function downloadExcelTemplate() {
     [5, 'Kombinert, normal bakke/10 km - menn', 'IND'],
     [6, 'Alpint, super-G - kvinner', 'IND'],
     [6, 'Langrenn, 10 km fri - kvinner', 'IND'],
-    [6, 'Snowboard, slopestyle - menn', 'IND'],
+    [12, 'Snowboard, slopestyle - menn', 'IND'],
     [7, 'Skiskyting, 10 km sprint - menn', 'IND'],
     [7, 'Langrenn, 10 km fri - menn', 'IND'],
     [7, 'Skøyter, 10000m - menn', 'IND'],
@@ -348,7 +348,7 @@ const OL_PROGRAM = [
   // DAG 6 - Torsdag 12. februar
   { dag: 6, dato: "Tor 12. feb", tid: "11:00", øvelse: "Alpint, super-G - kvinner", type: "individuell", sport: "alpint" },
   { dag: 6, dato: "Tor 12. feb", tid: "13:00", øvelse: "Langrenn, 10 km fri - kvinner", type: "individuell", sport: "langrenn" },
-  { dag: 6, dato: "Tor 12. feb", tid: "13:00", øvelse: "Snowboard, slopestyle - menn", type: "individuell", sport: "snowboard" },
+  { dag: 12, dato: "Ons 18. feb", tid: "13:00", øvelse: "Snowboard, slopestyle - menn", type: "individuell", sport: "snowboard" },
   
   // DAG 7 - Fredag 13. februar
   { dag: 7, dato: "Fre 13. feb", tid: "14:30", øvelse: "Skiskyting, 10 km sprint - menn", type: "individuell", sport: "skiskyting" },
@@ -1057,6 +1057,143 @@ const SimpleResultInput = React.memo(function SimpleResultInput({ value, onChang
       className={className}
     />
   );
+});
+
+// Fullstendig isolert autocomplete for admin - oppdaterer parent BARE ved blur/select
+const IsolatedAutocomplete = React.memo(function IsolatedAutocomplete({ 
+  initialValue, 
+  onCommit, 
+  suggestions, 
+  placeholder, 
+  className 
+}) {
+  const [localValue, setLocalValue] = useState(initialValue || '');
+  const [isOpen, setIsOpen] = useState(false);
+  const [filtered, setFiltered] = useState([]);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const ref = useRef(null);
+  const committedRef = useRef(initialValue || '');
+
+  // Oppdater lokal verdi hvis initial endres eksternt
+  useEffect(() => {
+    if (initialValue !== committedRef.current) {
+      setLocalValue(initialValue || '');
+      committedRef.current = initialValue || '';
+    }
+  }, [initialValue]);
+
+  // Filtrer suggestions basert på input
+  useEffect(() => {
+    if (localValue && localValue.length >= 2) {
+      const matches = suggestions.filter(s => 
+        s.toLowerCase().includes(localValue.toLowerCase())
+      ).slice(0, 6);
+      setFiltered(matches);
+      setIsOpen(matches.length > 0);
+      setSelectedIndex(-1);
+    } else {
+      setFiltered([]);
+      setIsOpen(false);
+    }
+  }, [localValue, suggestions]);
+
+  // Klikk utenfor lukker dropdown
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const commitValue = (val) => {
+    if (val !== committedRef.current) {
+      committedRef.current = val;
+      onCommit(val);
+    }
+  };
+
+  const selectItem = (item) => {
+    setLocalValue(item);
+    setIsOpen(false);
+    setSelectedIndex(-1);
+    commitValue(item);
+  };
+
+  const handleKeyDown = (e) => {
+    if (!isOpen || filtered.length === 0) {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        commitValue(localValue);
+      }
+      return;
+    }
+    
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev < filtered.length - 1 ? prev + 1 : prev));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      setSelectedIndex(prev => (prev > 0 ? prev - 1 : prev));
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      if (selectedIndex >= 0) {
+        selectItem(filtered[selectedIndex]);
+      } else {
+        commitValue(localValue);
+        setIsOpen(false);
+      }
+    } else if (e.key === 'Escape') {
+      setIsOpen(false);
+      setSelectedIndex(-1);
+    }
+  };
+
+  return (
+    <div className="relative flex-1" ref={ref}>
+      <input
+        type="text"
+        value={localValue}
+        onChange={(e) => setLocalValue(e.target.value)}
+        onFocus={() => filtered.length > 0 && setIsOpen(true)}
+        onBlur={() => {
+          // Liten delay for å la klikk på dropdown registreres
+          setTimeout(() => {
+            commitValue(localValue);
+          }, 150);
+        }}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        className={className}
+      />
+      {isOpen && filtered.length > 0 && (
+        <div className="absolute z-50 w-full mt-1 bg-slate-800 border border-slate-600 rounded-lg shadow-lg max-h-40 overflow-y-auto">
+          {filtered.map((item, i) => (
+            <button 
+              key={item} 
+              type="button" 
+              onMouseDown={(e) => {
+                e.preventDefault(); // Forhindre blur
+                selectItem(item);
+              }}
+              className={`w-full text-left px-3 py-2 text-sm ${
+                i === selectedIndex ? 'bg-cyan-600 text-white' : 'text-slate-200 hover:bg-slate-700'
+              }`}
+            >
+              {item}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}, (prevProps, nextProps) => {
+  // Custom comparison - bare re-render hvis initialValue faktisk endres
+  return prevProps.initialValue === nextProps.initialValue &&
+         prevProps.placeholder === nextProps.placeholder &&
+         prevProps.suggestions === nextProps.suggestions;
 });
 
 // Autocomplete
@@ -3701,13 +3838,14 @@ export default function OLTippingApp() {
                                     pos === 3 ? 'bg-orange-500 text-orange-900' :
                                     'bg-slate-600 text-white'
                                   }`}>{pos}</span>
-                                  <SimpleResultInput
-                                    value={resultater[ø.idx]?.[pos-1] || ''}
-                                    onChange={(val) => {
+                                  <IsolatedAutocomplete
+                                    initialValue={resultater[ø.idx]?.[pos-1] || ''}
+                                    onCommit={(val) => {
                                       const newRes = [...(resultater[ø.idx] || [])];
                                       newRes[pos-1] = val;
                                       setResultater(p => ({ ...p, [ø.idx]: newRes }));
                                     }}
+                                    suggestions={getSuggestions(ø.sport, ø.type)}
                                     placeholder={forrigeDelt ? '(tom - delt over)' : pos === 1 ? 'Gull...' : pos === 2 ? 'Sølv...' : pos === 3 ? 'Bronse...' : `${pos}. plass...`}
                                     className={`flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-sm text-white ${forrigeDelt ? 'opacity-50' : ''}`}
                                   />
