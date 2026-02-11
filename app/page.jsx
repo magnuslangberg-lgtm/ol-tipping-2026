@@ -1024,6 +1024,41 @@ const ChatInput = React.memo(function ChatInput({ onSend, placeholder }) {
   );
 });
 
+// Enkel input for admin resultater - helt uten autocomplete for maks ytelse
+const SimpleResultInput = React.memo(function SimpleResultInput({ value, onChange, placeholder, className }) {
+  const [localValue, setLocalValue] = useState(value || '');
+  const debounceRef = useRef(null);
+
+  useEffect(() => {
+    setLocalValue(value || '');
+  }, [value]);
+
+  const handleChange = (e) => {
+    const newVal = e.target.value;
+    setLocalValue(newVal);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      onChange(newVal);
+    }, 400);
+  };
+
+  return (
+    <input
+      type="text"
+      value={localValue}
+      onChange={handleChange}
+      onBlur={() => {
+        if (debounceRef.current) {
+          clearTimeout(debounceRef.current);
+          onChange(localValue);
+        }
+      }}
+      placeholder={placeholder}
+      className={className}
+    />
+  );
+});
+
 // Autocomplete
 function AutocompleteInput({ value, onChange, suggestions, placeholder, className }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -3666,14 +3701,13 @@ export default function OLTippingApp() {
                                     pos === 3 ? 'bg-orange-500 text-orange-900' :
                                     'bg-slate-600 text-white'
                                   }`}>{pos}</span>
-                                  <ResultatInput
+                                  <SimpleResultInput
                                     value={resultater[ø.idx]?.[pos-1] || ''}
                                     onChange={(val) => {
                                       const newRes = [...(resultater[ø.idx] || [])];
                                       newRes[pos-1] = val;
                                       setResultater(p => ({ ...p, [ø.idx]: newRes }));
                                     }}
-                                    suggestions={getSuggestions(ø.sport, ø.type)}
                                     placeholder={forrigeDelt ? '(tom - delt over)' : pos === 1 ? 'Gull...' : pos === 2 ? 'Sølv...' : pos === 3 ? 'Bronse...' : `${pos}. plass...`}
                                     className={`flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-sm text-white ${forrigeDelt ? 'opacity-50' : ''}`}
                                   />
