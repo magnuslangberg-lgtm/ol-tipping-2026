@@ -1968,7 +1968,7 @@ export default function OLTippingApp() {
     const plasseringer = [];
     let currentPlass = 1;
     
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 6; i++) {
       // Sjekk om FORRIGE plass var delt - da får denne samme plassering
       if (i > 0 && delt.includes(plasseringer[i - 1])) {
         // Forrige plass var delt, så denne får samme plassering
