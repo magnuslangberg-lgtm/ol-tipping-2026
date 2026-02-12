@@ -1986,8 +1986,8 @@ export default function OLTippingApp() {
     const res = resultater[øvelseIdx];
     if (!res) return '';
     const plasseringer = getPlasseringerMedDelt(øvelseIdx);
-    const antall = type === 'individuell' ? 5 : 3;
-    return res.slice(0, antall).map((r, i) => `${plasseringer[i]}. ${r || '-'}`).join(' | ');
+    const antall = type === 'individuell' ? 6 : 3;
+    return res.slice(0, antall).map((r, i) => r ? `${plasseringer[i]}. ${r}` : null).filter(Boolean).join(' | ');
   };
 
   // Beregn poeng
