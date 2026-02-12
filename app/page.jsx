@@ -99,7 +99,7 @@ async function downloadExcelTemplate() {
     [9, 'Hopp, stor bakke - kvinner', 'IND'],
     [10, 'Alpint, slalåm - menn', 'IND'],
     [10, 'Hopp, lagkonkurranse stor bakke - menn', 'LAG'],
-    [12, 'Freeski, big air - menn', 'IND'],
+    [11, 'Freeski, big air - menn', 'IND'],
     [11, 'Skiskyting, stafett - menn', 'LAG'],
     [12, 'Alpint, slalåm - kvinner', 'IND'],
     [12, 'Skiskyting, stafett - kvinner', 'LAG'],
@@ -371,7 +371,7 @@ const OL_PROGRAM = [
   // DAG 10 - Mandag 16. februar
   { dag: 10, dato: "Man 16. feb", tid: "10:00", øvelse: "Alpint, slalåm - menn", type: "individuell", sport: "alpint" },
   { dag: 10, dato: "Man 16. feb", tid: "18:00", øvelse: "Hopp, lagkonkurranse stor bakke - menn", type: "lag", sport: "hopp" },
-  { dag: 12, dato: "Ons 18. feb", tid: "19:30", øvelse: "Freeski, big air - menn", type: "individuell", sport: "freeski" },
+  { dag: 11, dato: "Tir 17. feb", tid: "19:30", øvelse: "Freeski, big air - menn", type: "individuell", sport: "freeski" },
   
   // DAG 11 - Tirsdag 17. februar
   { dag: 11, dato: "Tir 17. feb", tid: "14:30", øvelse: "Skiskyting, stafett - menn", type: "lag", sport: "skiskyting" },
