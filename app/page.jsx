@@ -3985,9 +3985,11 @@ export default function OLTippingApp() {
                                   <IsolatedAutocomplete
                                     initialValue={resultater[ø.idx]?.[pos-1] || ''}
                                     onCommit={(val) => {
-                                      const newRes = [...(resultater[ø.idx] || [])];
-                                      newRes[pos-1] = val;
-                                      setResultater(p => ({ ...p, [ø.idx]: newRes }));
+                                      setResultater(prev => {
+                                        const newRes = [...(prev[ø.idx] || Array(ø.type === 'individuell' ? 5 : 3).fill(''))];
+                                        newRes[pos-1] = val;
+                                        return { ...prev, [ø.idx]: newRes };
+                                      });
                                     }}
                                     suggestions={getSuggestions(ø.sport, ø.type)}
                                     placeholder={forrigeDelt ? '(tom - delt over)' : pos === 1 ? 'Gull...' : pos === 2 ? 'Sølv...' : pos === 3 ? 'Bronse...' : `${pos}. plass...`}
