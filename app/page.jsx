@@ -3967,10 +3967,10 @@ export default function OLTippingApp() {
                       <div key={ø.idx} className="bg-slate-700/50 rounded p-3">
                         <p className="text-sm text-white font-semibold mb-2">{ø.øvelse}</p>
                         <p className="text-xs text-slate-400 mb-2">
-                          {ø.type === 'individuell' ? '5 plasser (utøvere)' : '3 plasser (nasjoner)'}
+                          {ø.type === 'individuell' ? '6 plasser (utøvere)' : '3 plasser (nasjoner)'}
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                          {(ø.type === 'individuell' ? [1,2,3,4,5] : [1,2,3]).map((pos) => {
+                          {(ø.type === 'individuell' ? [1,2,3,4,5,6] : [1,2,3]).map((pos) => {
                             const erDelt = deltePlasser[ø.idx]?.includes(pos);
                             const forrigeDelt = deltePlasser[ø.idx]?.includes(pos - 1);
                             return (
@@ -3986,7 +3986,7 @@ export default function OLTippingApp() {
                                     initialValue={resultater[ø.idx]?.[pos-1] || ''}
                                     onCommit={(val) => {
                                       setResultater(prev => {
-                                        const newRes = [...(prev[ø.idx] || Array(ø.type === 'individuell' ? 5 : 3).fill(''))];
+                                        const newRes = [...(prev[ø.idx] || Array(ø.type === 'individuell' ? 6 : 3).fill(''))];
                                         newRes[pos-1] = val;
                                         return { ...prev, [ø.idx]: newRes };
                                       });
@@ -3997,7 +3997,7 @@ export default function OLTippingApp() {
                                   />
                                 </div>
                                 {/* Delt plass checkbox - ikke på siste plass */}
-                                {pos < (ø.type === 'individuell' ? 5 : 3) && (
+                                {pos < (ø.type === 'individuell' ? 6 : 3) && (
                                   <label className="flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer ml-8">
                                     <input
                                       type="checkbox"
