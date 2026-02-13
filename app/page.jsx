@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Trophy, Users, Calendar, ChevronDown, ChevronUp, Send, Eye, EyeOff, Mountain, Flag, CheckCircle, AlertCircle, Lock, LogOut, User, FileText, AlertTriangle, List, X, Download, Upload, Trash2, MessageCircle, Radio, Edit3, Pin } from 'lucide-react';
 import { initializeApp } from 'firebase/app';
 import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot } from 'firebase/firestore';
@@ -1358,6 +1358,70 @@ const StudioLoginFormMobile = React.memo(function StudioLoginFormMobile({ onLogi
   );
 });
 
+// Isolert deltaker innlogging for tipping-siden
+const DeltakerLoginForm = React.memo(function DeltakerLoginForm({ onLogin, alleTips, genererPin, onError }) {
+  const [navn, setNavn] = useState('');
+  const [pin, setPin] = useState('');
+  const [error, setError] = useState('');
+
+  const tryLogin = () => {
+    const deltaker = alleTips.find(d => 
+      d.navn.toLowerCase() === navn.toLowerCase() && 
+      (d.pin === pin || genererPin(d.navn) === pin)
+    );
+    if (deltaker) {
+      onLogin(deltaker);
+      setError('');
+    } else {
+      setError('Feil lagnavn eller PIN');
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <input 
+        type="text" 
+        value={navn}
+        onChange={(e) => setNavn(e.target.value)}
+        placeholder="Ditt navn..."
+        className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white"
+      />
+      <input 
+        type="password" 
+        value={pin}
+        onChange={(e) => setPin(e.target.value)}
+        onKeyPress={(e) => e.key === 'Enter' && tryLogin()}
+        placeholder="Din 4-sifrede PIN..."
+        maxLength={4}
+        className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white"
+      />
+      {error && <p className="text-red-400 text-sm">{error}</p>}
+      <button 
+        onClick={tryLogin}
+        className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg"
+      >
+        Logg inn og endre tips
+      </button>
+    </div>
+  );
+});
+
+// Isolert deltakernavn input
+const DeltakerNavnInput = React.memo(function DeltakerNavnInput({ onCommit, placeholder }) {
+  const [localValue, setLocalValue] = useState('');
+  
+  return (
+    <input 
+      type="text" 
+      value={localValue}
+      onChange={(e) => setLocalValue(e.target.value)}
+      onBlur={() => onCommit(localValue)}
+      placeholder={placeholder}
+      className="w-full px-4 py-3 text-lg bg-slate-900/50 border border-blue-500/50 rounded-xl text-white placeholder-slate-500 focus:border-blue-400 focus:ring-1 focus:ring-blue-400"
+    />
+  );
+});
+
 // Autocomplete
 function AutocompleteInput({ value, onChange, suggestions, placeholder, className }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -1447,6 +1511,19 @@ function AutocompleteInput({ value, onChange, suggestions, placeholder, classNam
     </div>
   );
 }
+
+// Statiske beregninger - gjøres kun én gang ved lasting
+const ØVELSER_PER_DAG = OL_PROGRAM.reduce((acc, ø, idx) => {
+  if (!acc[ø.dag]) acc[ø.dag] = [];
+  acc[ø.dag].push({ ...ø, idx });
+  return acc;
+}, {});
+
+const ØVELSER_PER_SPORT = OL_PROGRAM.reduce((acc, ø, idx) => {
+  if (!acc[ø.sport]) acc[ø.sport] = [];
+  acc[ø.sport].push({ ...ø, idx });
+  return acc;
+}, {});
 
 export default function OLTippingApp() {
   const [view, setView] = useState('studio');
@@ -1826,17 +1903,9 @@ export default function OLTippingApp() {
     localStorage.removeItem('olTipping_rememberedUser');
   };
 
-  const øvelserPerDag = OL_PROGRAM.reduce((acc, ø, idx) => {
-    if (!acc[ø.dag]) acc[ø.dag] = [];
-    acc[ø.dag].push({ ...ø, idx });
-    return acc;
-  }, {});
-
-  const øvelserPerSport = OL_PROGRAM.reduce((acc, ø, idx) => {
-    if (!acc[ø.sport]) acc[ø.sport] = [];
-    acc[ø.sport].push({ ...ø, idx });
-    return acc;
-  }, {});
+  // Bruk statiske beregninger
+  const øvelserPerDag = ØVELSER_PER_DAG;
+  const øvelserPerSport = ØVELSER_PER_SPORT;
 
   const toggleDay = (dag) => setExpandedDays(p => ({ ...p, [dag]: !p[dag] }));
 
@@ -2100,12 +2169,14 @@ export default function OLTippingApp() {
     return 0;
   };
 
-  const leaderboard = [...alleTips].map(d => ({ 
-    ...d, 
-    øvelsePoeng: beregnPoeng(d),
-    gullBonus: beregnGullBonus(d),
-    poeng: beregnPoeng(d) + beregnGullBonus(d)
-  })).sort((a, b) => b.poeng - a.poeng);
+  const leaderboard = useMemo(() => {
+    return [...alleTips].map(d => ({ 
+      ...d, 
+      øvelsePoeng: beregnPoeng(d),
+      gullBonus: beregnGullBonus(d),
+      poeng: beregnPoeng(d) + beregnGullBonus(d)
+    })).sort((a, b) => b.poeng - a.poeng);
+  }, [alleTips, resultater, deltePlasser, norskeGullResultat]);
   
   // Beregn plassering med delte plasser for leaderboard
   const getLeaderboardPlassering = (sortedList, idx) => {
@@ -2121,10 +2192,10 @@ export default function OLTippingApp() {
     return { plass, delt };
   };
   
-  // Leaderboard for en spesifikk dag
-  const getLeaderboardForDay = (dag) => {
+  // Leaderboard for en spesifikk dag (memoized)
+  const getLeaderboardForDay = useCallback((dag) => {
     return [...alleTips].map(d => ({ ...d, poeng: beregnPoeng(d, dag) })).sort((a, b) => b.poeng - a.poeng);
-  };
+  }, [alleTips, resultater, deltePlasser]);
 
   // Finn siste dag med resultater
   const getSisteOppdaterteDag = () => {
@@ -3015,29 +3086,20 @@ export default function OLTippingApp() {
                     </div>
                   )}
                   
-                  <div className="space-y-2">
-                    <input 
-                      type="text" 
-                      value={deltakerLoginNavn}
-                      onChange={(e) => setDeltakerLoginNavn(e.target.value)}
-                      placeholder="Ditt navn..."
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white"
-                    />
-                    <input 
-                      type="password" 
-                      value={deltakerLoginPin}
-                      onChange={(e) => setDeltakerLoginPin(e.target.value)}
-                      placeholder="Din 4-sifrede PIN..."
-                      maxLength={4}
-                      className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white"
-                    />
-                    <button 
-                      onClick={handleDeltakerLogin}
-                      className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg"
-                    >
-                      Logg inn og endre tips
-                    </button>
-                  </div>
+                  <DeltakerLoginForm
+                    onLogin={(deltaker) => {
+                      setLoggedInDeltaker(deltaker);
+                      setIsEditMode(true);
+                      setShowLoginModal(false);
+                      setDeltakerLoginError('');
+                      // Last inn eksisterende tips
+                      setTips(deltaker.tips || {});
+                      setGullTips(deltaker.gullTips?.toString() || '');
+                      setDeltakerNavn(deltaker.navn);
+                    }}
+                    alleTips={alleTips}
+                    genererPin={genererPin}
+                  />
                 </div>
               </div>
             ) : submitted ? (
@@ -3106,37 +3168,30 @@ export default function OLTippingApp() {
                       </div>
                     )}
                     
-                    <div className="space-y-2">
-                      <input 
-                        type="text" 
-                        value={deltakerLoginNavn}
-                        onChange={(e) => setDeltakerLoginNavn(e.target.value)}
-                        placeholder="Ditt navn..."
-                        className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white"
-                      />
-                      <input 
-                        type="password" 
-                        value={deltakerLoginPin}
-                        onChange={(e) => setDeltakerLoginPin(e.target.value)}
-                        placeholder="Din 4-sifrede PIN..."
-                        maxLength={4}
-                        className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white"
-                      />
-                      <button 
-                        onClick={handleDeltakerLogin}
-                        className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg"
-                      >
-                        Logg inn
-                      </button>
-                    </div>
+                    <DeltakerLoginForm
+                      onLogin={(deltaker) => {
+                        setLoggedInDeltaker(deltaker);
+                        setIsEditMode(true);
+                        setShowLoginModal(false);
+                        setDeltakerLoginError('');
+                        setTips(deltaker.tips || {});
+                        setGullTips(deltaker.gullTips?.toString() || '');
+                        setDeltakerNavn(deltaker.navn);
+                      }}
+                      alleTips={alleTips}
+                      genererPin={genererPin}
+                    />
                   </div>
                 )}
 
                 {/* Navn og PIN */}
                 <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
                   <label className="block text-sm font-bold text-cyan-400 mb-2">Lagnavn:</label>
-                  <input type="text" value={deltakerNavn} onChange={(e) => setDeltakerNavn(e.target.value)}
-                    placeholder="Skriv lagnavn..." className="w-full px-3 py-2 bg-slate-900 border border-slate-600 rounded-lg text-white mb-3" />
+                  <DeltakerNavnInput 
+                    onCommit={(val) => setDeltakerNavn(val)}
+                    placeholder="Skriv lagnavn..."
+                  />
+                  <div className="mb-3" />
                   
                   <label className="block text-sm font-bold text-yellow-400 mb-2">Velg en 4-sifret PIN-kode:</label>
                   <p className="text-xs text-slate-400 mb-2">Du trenger denne for å kunne endre tipsene dine senere</p>
