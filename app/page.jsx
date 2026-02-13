@@ -1562,6 +1562,7 @@ export default function OLTippingApp() {
   const [gullTipsSynlig, setGullTipsSynlig] = useState(false);
   const [tipsDag, setTipsDag] = useState(1); // Valgt dag på Tips-siden
   const [påmeldingLåst, setPåmeldingLåst] = useState(false); // Lås påmelding etter frist
+  const [låsteØvelser, setLåsteØvelser] = useState([]); // Array av øvelse-indekser som er låst
   
   // Deltaker-innlogging for redigering
   const [isEditMode, setIsEditMode] = useState(false); // Redigeringsmodus
@@ -1629,6 +1630,7 @@ export default function OLTippingApp() {
         setSynligeDager(dager);
         setGullTipsSynlig(docSnap.data().gullTips || false);
         setPåmeldingLåst(docSnap.data().påmeldingLåst || false);
+        setLåsteØvelser(docSnap.data().låsteØvelser || []);
         
         // Sett tipsDag til høyeste synlige dag
         const synlige = Object.entries(dager).filter(([_, synlig]) => synlig).map(([dag, _]) => parseInt(dag));
@@ -1730,12 +1732,13 @@ export default function OLTippingApp() {
   }, [alleTips]);
 
   // Lagre synlighetsinnstillinger til Firebase
-  const saveSynlighetToFirebase = async (dager, gullTips, låst = påmeldingLåst) => {
+  const saveSynlighetToFirebase = async (dager, gullTips, låst = påmeldingLåst, låsteØv = låsteØvelser) => {
     try {
       await setDoc(doc(db, 'config', 'synlighet'), { 
         dager: dager,
         gullTips: gullTips,
-        påmeldingLåst: låst
+        påmeldingLåst: låst,
+        låsteØvelser: låsteØv
       });
     } catch (e) {
       console.error('Feil ved lagring av synlighet:', e);
@@ -2687,6 +2690,25 @@ export default function OLTippingApp() {
                   {synligeDager[tipsDag] ? (
                     <div className="space-y-3">
                       {øvelserPerDag[tipsDag]?.map(ø => {
+                        const hasResult = resultater[ø.idx] && resultater[ø.idx].some(r => r?.trim());
+                        const øvelseLåst = låsteØvelser.includes(ø.idx) && !hasResult;
+                        
+                        if (øvelseLåst) {
+                          return (
+                            <div key={ø.idx} className="bg-slate-900/50 rounded-lg border border-slate-600 p-3">
+                              <div className="flex items-center gap-2 mb-2">
+                                <span className={`text-xs px-2 py-0.5 rounded ${SPORT_COLORS[ø.sport]?.bg} text-white`}>{ø.sport.toUpperCase()}</span>
+                                <span className="font-semibold text-white text-sm">{ø.øvelse}</span>
+                              </div>
+                              <div className="text-center py-4 text-slate-500">
+                                <Lock className="w-6 h-6 mx-auto mb-2 opacity-50" />
+                                <p className="text-sm">🔒 Tips er skjult</p>
+                                <p className="text-xs">Vises når øvelsen har startet</p>
+                              </div>
+                            </div>
+                          );
+                        }
+                        
                         const teller = {};
                         alleTips.forEach(d => {
                           d.tips[ø.idx]?.forEach((navn, pos) => {
@@ -3453,6 +3475,19 @@ export default function OLTippingApp() {
                                     {øvelserPerDag[leaderboardView]?.map(ø => {
                                       const øvelseInfo = beregnØvelsePoeng(d, ø.idx);
                                       const hasResult = resultater[ø.idx] && resultater[ø.idx].some(r => r?.trim());
+                                      const øvelseLåst = låsteØvelser.includes(ø.idx) && !hasResult;
+                                      
+                                      if (øvelseLåst) {
+                                        return (
+                                          <div key={ø.idx} className="bg-slate-800/50 rounded p-2">
+                                            <div className="flex justify-between items-start">
+                                              <p className="text-xs text-white font-semibold flex-1">{ø.øvelse}</p>
+                                              <Lock className="w-3 h-3 text-slate-500" />
+                                            </div>
+                                            <p className="text-xs text-slate-500 italic">🔒 Tips skjult til øvelsen starter</p>
+                                          </div>
+                                        );
+                                      }
                                       
                                       return (
                                         <div key={ø.idx} className="bg-slate-800/50 rounded p-2">
@@ -3544,6 +3579,45 @@ export default function OLTippingApp() {
                         <><Eye className="w-4 h-4" /> Åpen</>
                       )}
                     </button>
+                  </div>
+                </div>
+
+                {/* Lås enkeltøvelser (finaler) */}
+                <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
+                  <h3 className="font-bold text-white flex items-center gap-2 mb-3">
+                    🏆 Lås finaler (skjul tips før finalister er klare)
+                  </h3>
+                  <p className="text-xs text-slate-400 mb-3">
+                    Lås disse øvelsene slik at deltakernes tips ikke vises før du åpner dem
+                  </p>
+                  <div className="space-y-2">
+                    {OL_PROGRAM.map((ø, idx) => {
+                      // Vis bare curling og ishockey finaler
+                      if (!ø.øvelse.includes('Curling, finale') && !ø.øvelse.includes('Ishockey, finale')) return null;
+                      const erLåst = låsteØvelser.includes(idx);
+                      return (
+                        <div key={idx} className="flex items-center justify-between bg-slate-700/50 rounded-lg p-2">
+                          <div>
+                            <span className="text-white text-sm">{ø.øvelse}</span>
+                            <span className="text-slate-400 text-xs ml-2">(Dag {ø.dag})</span>
+                          </div>
+                          <button
+                            onClick={() => {
+                              const nyListe = erLåst 
+                                ? låsteØvelser.filter(i => i !== idx)
+                                : [...låsteØvelser, idx];
+                              setLåsteØvelser(nyListe);
+                              saveSynlighetToFirebase(synligeDager, gullTipsSynlig, påmeldingLåst, nyListe);
+                            }}
+                            className={`px-3 py-1 rounded text-xs font-semibold flex items-center gap-1 ${
+                              erLåst ? 'bg-red-600 text-white' : 'bg-green-600 text-white'
+                            }`}
+                          >
+                            {erLåst ? <><Lock className="w-3 h-3" /> Låst</> : <><Eye className="w-3 h-3" /> Synlig</>}
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 
