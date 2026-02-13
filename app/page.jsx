@@ -2020,6 +2020,12 @@ export default function OLTippingApp() {
     return !dagHarResultat && !dagErSynlig;
   };
 
+  // Sjekk om en spesifikk øvelse kan redigeres
+  const kanRedigereØvelse = (øvelseIdx) => {
+    // Låst hvis øvelsen er i låsteØvelser-listen
+    return !låsteØvelser.includes(øvelseIdx);
+  };
+
   // Finn ukjente navn for en deltaker
   const getUnknownNames = (deltaker) => {
     const unknown = [];
@@ -2690,25 +2696,6 @@ export default function OLTippingApp() {
                   {synligeDager[tipsDag] ? (
                     <div className="space-y-3">
                       {øvelserPerDag[tipsDag]?.map(ø => {
-                        const hasResult = resultater[ø.idx] && resultater[ø.idx].some(r => r?.trim());
-                        const øvelseLåst = låsteØvelser.includes(ø.idx) && !hasResult;
-                        
-                        if (øvelseLåst) {
-                          return (
-                            <div key={ø.idx} className="bg-slate-900/50 rounded-lg border border-slate-600 p-3">
-                              <div className="flex items-center gap-2 mb-2">
-                                <span className={`text-xs px-2 py-0.5 rounded ${SPORT_COLORS[ø.sport]?.bg} text-white`}>{ø.sport.toUpperCase()}</span>
-                                <span className="font-semibold text-white text-sm">{ø.øvelse}</span>
-                              </div>
-                              <div className="text-center py-4 text-slate-500">
-                                <Lock className="w-6 h-6 mx-auto mb-2 opacity-50" />
-                                <p className="text-sm">🔒 Tips er skjult</p>
-                                <p className="text-xs">Vises når øvelsen har startet</p>
-                              </div>
-                            </div>
-                          );
-                        }
-                        
                         const teller = {};
                         alleTips.forEach(d => {
                           d.tips[ø.idx]?.forEach((navn, pos) => {
@@ -3009,41 +2996,64 @@ export default function OLTippingApp() {
                         
                         {kanRedigere && expandedDays[dag] && (
                           <div className="p-3 space-y-3">
-                            {øvelser.map((ø) => (
-                              <div key={ø.idx} className={`rounded-lg p-3 ${SPORT_COLORS[ø.sport]?.light} border ${SPORT_COLORS[ø.sport]?.border}`}>
-                                <div className="flex items-center gap-2 mb-2">
-                                  <span className={`px-2 py-0.5 rounded text-xs font-bold text-white ${SPORT_COLORS[ø.sport]?.bg}`}>
-                                    {ø.sport.toUpperCase()}
-                                  </span>
-                                  <span className={`px-2 py-0.5 rounded text-xs font-semibold ${ø.type === 'lag' ? 'bg-green-600' : 'bg-blue-600'} text-white`}>
-                                    {ø.type === 'lag' ? 'LAG' : 'IND'}
-                                  </span>
+                            {øvelser.map((ø) => {
+                              const øvelseLåst = !kanRedigereØvelse(ø.idx);
+                              
+                              if (øvelseLåst) {
+                                return (
+                                  <div key={ø.idx} className="rounded-lg p-3 bg-slate-700/50 border border-slate-600">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <span className={`px-2 py-0.5 rounded text-xs font-bold text-white ${SPORT_COLORS[ø.sport]?.bg}`}>
+                                        {ø.sport.toUpperCase()}
+                                      </span>
+                                      <span className="px-2 py-0.5 rounded text-xs font-semibold bg-red-600 text-white flex items-center gap-1">
+                                        <Lock className="w-3 h-3" /> LÅST
+                                      </span>
+                                    </div>
+                                    <h4 className="font-semibold text-slate-300 text-sm mb-2">{ø.øvelse}</h4>
+                                    <div className="text-xs text-slate-400">
+                                      Dine tips: {tips[ø.idx]?.filter(t => t).join(', ') || 'Ingen'}
+                                    </div>
+                                  </div>
+                                );
+                              }
+                              
+                              return (
+                                <div key={ø.idx} className={`rounded-lg p-3 ${SPORT_COLORS[ø.sport]?.light} border ${SPORT_COLORS[ø.sport]?.border}`}>
+                                  <div className="flex items-center gap-2 mb-2">
+                                    <span className={`px-2 py-0.5 rounded text-xs font-bold text-white ${SPORT_COLORS[ø.sport]?.bg}`}>
+                                      {ø.sport.toUpperCase()}
+                                    </span>
+                                    <span className={`px-2 py-0.5 rounded text-xs font-semibold ${ø.type === 'lag' ? 'bg-green-600' : 'bg-blue-600'} text-white`}>
+                                      {ø.type === 'lag' ? 'LAG' : 'IND'}
+                                    </span>
+                                  </div>
+                                  <h4 className="font-semibold text-slate-800 text-sm mb-2">{ø.øvelse}</h4>
+                                  <div className="grid gap-1.5">
+                                    {(ø.type === 'individuell' ? [0,1,2,3,4] : [0,1,2]).map((pos) => (
+                                      <AutocompleteInput
+                                        key={pos}
+                                        value={tips[ø.idx]?.[pos] || ''}
+                                        onChange={(val) => {
+                                          const newTips = { ...tips };
+                                          if (!newTips[ø.idx]) newTips[ø.idx] = ø.type === 'individuell' ? ['','','','',''] : ['','',''];
+                                          newTips[ø.idx][pos] = val;
+                                          setTips(newTips);
+                                        }}
+                                        suggestions={getSuggestions(ø.sport, ø.type)}
+                                        placeholder={`${pos + 1}. ${pos === 0 ? 'Gull' : pos === 1 ? 'Sølv' : pos === 2 ? 'Bronse' : `plass`}...`}
+                                        className={`w-full px-3 py-1.5 text-sm border rounded-lg ${
+                                          pos === 0 ? 'bg-yellow-50 border-yellow-300' :
+                                          pos === 1 ? 'bg-slate-100 border-slate-300' :
+                                          pos === 2 ? 'bg-orange-50 border-orange-300' :
+                                          'bg-white border-slate-200'
+                                        }`}
+                                      />
+                                    ))}
+                                  </div>
                                 </div>
-                                <h4 className="font-semibold text-slate-800 text-sm mb-2">{ø.øvelse}</h4>
-                                <div className="grid gap-1.5">
-                                  {(ø.type === 'individuell' ? [0,1,2,3,4] : [0,1,2]).map((pos) => (
-                                    <AutocompleteInput
-                                      key={pos}
-                                      value={tips[ø.idx]?.[pos] || ''}
-                                      onChange={(val) => {
-                                        const newTips = { ...tips };
-                                        if (!newTips[ø.idx]) newTips[ø.idx] = ø.type === 'individuell' ? ['','','','',''] : ['','',''];
-                                        newTips[ø.idx][pos] = val;
-                                        setTips(newTips);
-                                      }}
-                                      suggestions={getSuggestions(ø.sport, ø.type)}
-                                      placeholder={`${pos + 1}. ${pos === 0 ? 'Gull' : pos === 1 ? 'Sølv' : pos === 2 ? 'Bronse' : `plass`}...`}
-                                      className={`w-full px-3 py-1.5 text-sm border rounded-lg ${
-                                        pos === 0 ? 'bg-yellow-50 border-yellow-300' :
-                                        pos === 1 ? 'bg-slate-100 border-slate-300' :
-                                        pos === 2 ? 'bg-orange-50 border-orange-300' :
-                                        'bg-white border-slate-200'
-                                      }`}
-                                    />
-                                  ))}
-                                </div>
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         )}
                       </div>
@@ -3475,19 +3485,6 @@ export default function OLTippingApp() {
                                     {øvelserPerDag[leaderboardView]?.map(ø => {
                                       const øvelseInfo = beregnØvelsePoeng(d, ø.idx);
                                       const hasResult = resultater[ø.idx] && resultater[ø.idx].some(r => r?.trim());
-                                      const øvelseLåst = låsteØvelser.includes(ø.idx) && !hasResult;
-                                      
-                                      if (øvelseLåst) {
-                                        return (
-                                          <div key={ø.idx} className="bg-slate-800/50 rounded p-2">
-                                            <div className="flex justify-between items-start">
-                                              <p className="text-xs text-white font-semibold flex-1">{ø.øvelse}</p>
-                                              <Lock className="w-3 h-3 text-slate-500" />
-                                            </div>
-                                            <p className="text-xs text-slate-500 italic">🔒 Tips skjult til øvelsen starter</p>
-                                          </div>
-                                        );
-                                      }
                                       
                                       return (
                                         <div key={ø.idx} className="bg-slate-800/50 rounded p-2">
@@ -3585,10 +3582,10 @@ export default function OLTippingApp() {
                 {/* Lås enkeltøvelser (finaler) */}
                 <div className="bg-slate-800/50 rounded-xl p-4 border border-slate-700">
                   <h3 className="font-bold text-white flex items-center gap-2 mb-3">
-                    🏆 Lås finaler (skjul tips før finalister er klare)
+                    🏆 Lås finaler for redigering
                   </h3>
                   <p className="text-xs text-slate-400 mb-3">
-                    Lås disse øvelsene slik at deltakernes tips ikke vises før du åpner dem
+                    Lås disse øvelsene slik at deltakere ikke kan endre tipsene sine (tips vises fortsatt)
                   </p>
                   <div className="space-y-2">
                     {OL_PROGRAM.map((ø, idx) => {
