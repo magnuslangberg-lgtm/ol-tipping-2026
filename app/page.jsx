@@ -3965,12 +3965,10 @@ export default function OLTippingApp() {
                     {editingDeltaker?.id === selectedDeltaker.id ? (
                       <div className="flex items-center gap-2 text-xs text-slate-400 mb-3">
                         <span>Gull-tips 🇳🇴:</span>
-                        <input
-                          type="number"
-                          min="0"
-                          max="50"
+                        <SimpleResultInput
                           value={editingDeltaker.gullTips || ''}
-                          onChange={(e) => setEditingDeltaker({ ...editingDeltaker, gullTips: e.target.value })}
+                          onChange={(val) => setEditingDeltaker(prev => ({ ...prev, gullTips: val }))}
+                          placeholder="?"
                           className="w-16 px-2 py-1 bg-slate-900 border border-blue-500 rounded text-white text-center"
                         />
                         <span className="text-slate-500">| Innsendt: {selectedDeltaker.innsendt}</span>
@@ -3997,19 +3995,20 @@ export default function OLTippingApp() {
                               <p className="text-xs text-slate-400">{ø.øvelse}</p>
                               <div className="flex flex-wrap gap-1">
                                 {editingDeltaker?.id === selectedDeltaker.id ? (
-                                  // Redigeringsmodus
+                                  // Redigeringsmodus - enkel input uten autocomplete for ytelse
                                   (ø.type === 'individuell' ? [0,1,2,3,4] : [0,1,2]).map((i) => (
-                                    <ResultatInput
+                                    <SimpleResultInput
                                       key={i}
                                       value={editingDeltaker.tips[ø.idx]?.[i] || ''}
                                       onChange={(val) => {
-                                        const newTips = { ...editingDeltaker.tips };
-                                        if (!newTips[ø.idx]) newTips[ø.idx] = ø.type === 'individuell' ? ['','','','',''] : ['','',''];
-                                        newTips[ø.idx] = [...newTips[ø.idx]];
-                                        newTips[ø.idx][i] = val;
-                                        setEditingDeltaker({ ...editingDeltaker, tips: newTips });
+                                        setEditingDeltaker(prev => {
+                                          const newTips = { ...prev.tips };
+                                          if (!newTips[ø.idx]) newTips[ø.idx] = ø.type === 'individuell' ? ['','','','',''] : ['','',''];
+                                          newTips[ø.idx] = [...newTips[ø.idx]];
+                                          newTips[ø.idx][i] = val;
+                                          return { ...prev, tips: newTips };
+                                        });
                                       }}
-                                      suggestions={getSuggestions(ø.sport, ø.type)}
                                       placeholder={`${i+1}.`}
                                       className="w-24 px-2 py-1 bg-slate-800 border border-blue-500 rounded text-xs text-white"
                                     />
