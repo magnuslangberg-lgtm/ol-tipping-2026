@@ -1059,6 +1059,34 @@ const SimpleResultInput = React.memo(function SimpleResultInput({ value, onChang
   );
 });
 
+// Ultra-enkel input - oppdaterer parent KUN ved blur (for admin deltaker-redigering)
+const BlurOnlyInput = React.memo(function BlurOnlyInput({ initialValue, onCommit, placeholder, className }) {
+  const [localValue, setLocalValue] = useState(initialValue || '');
+  const hasChangedRef = useRef(false);
+
+  return (
+    <input
+      type="text"
+      value={localValue}
+      onChange={(e) => {
+        setLocalValue(e.target.value);
+        hasChangedRef.current = true;
+      }}
+      onBlur={() => {
+        if (hasChangedRef.current) {
+          onCommit(localValue);
+          hasChangedRef.current = false;
+        }
+      }}
+      placeholder={placeholder}
+      className={className}
+    />
+  );
+}, (prevProps, nextProps) => {
+  // Kun re-render hvis initialValue endres OG komponenten ikke har fokus
+  return prevProps.initialValue === nextProps.initialValue;
+});
+
 // Fullstendig isolert autocomplete for admin - oppdaterer parent BARE ved blur/select
 const IsolatedAutocomplete = React.memo(function IsolatedAutocomplete({ 
   initialValue, 
@@ -3965,9 +3993,9 @@ export default function OLTippingApp() {
                     {editingDeltaker?.id === selectedDeltaker.id ? (
                       <div className="flex items-center gap-2 text-xs text-slate-400 mb-3">
                         <span>Gull-tips 🇳🇴:</span>
-                        <SimpleResultInput
-                          value={editingDeltaker.gullTips || ''}
-                          onChange={(val) => setEditingDeltaker(prev => ({ ...prev, gullTips: val }))}
+                        <BlurOnlyInput
+                          initialValue={editingDeltaker.gullTips || ''}
+                          onCommit={(val) => setEditingDeltaker(prev => ({ ...prev, gullTips: val }))}
                           placeholder="?"
                           className="w-16 px-2 py-1 bg-slate-900 border border-blue-500 rounded text-white text-center"
                         />
@@ -3997,10 +4025,10 @@ export default function OLTippingApp() {
                                 {editingDeltaker?.id === selectedDeltaker.id ? (
                                   // Redigeringsmodus - enkel input uten autocomplete for ytelse
                                   (ø.type === 'individuell' ? [0,1,2,3,4] : [0,1,2]).map((i) => (
-                                    <SimpleResultInput
-                                      key={i}
-                                      value={editingDeltaker.tips[ø.idx]?.[i] || ''}
-                                      onChange={(val) => {
+                                    <BlurOnlyInput
+                                      key={`${ø.idx}-${i}`}
+                                      initialValue={editingDeltaker.tips[ø.idx]?.[i] || ''}
+                                      onCommit={(val) => {
                                         setEditingDeltaker(prev => {
                                           const newTips = { ...prev.tips };
                                           if (!newTips[ø.idx]) newTips[ø.idx] = ø.type === 'individuell' ? ['','','','',''] : ['','',''];
