@@ -2072,17 +2072,28 @@ export default function OLTippingApp() {
   const getPlasseringerMedDelt = (øvelseIdx) => {
     const delt = deltePlasser[øvelseIdx] || [];
     const plasseringer = [];
-    let currentPlass = 1;
     
     for (let i = 0; i < 6; i++) {
-      // Sjekk om FORRIGE plass var delt - da får denne samme plassering
-      if (i > 0 && delt.includes(plasseringer[i - 1])) {
-        // Forrige plass var delt, så denne får samme plassering
-        plasseringer.push(plasseringer[i - 1]);
+      if (i === 0) {
+        plasseringer.push(1);
       } else {
-        plasseringer.push(currentPlass);
+        // Sjekk om forrige posisjon (1-indeksert: i) var markert som delt
+        // Hvis "Delt 2. plass" er krysset av, har delt=[2], og posisjon 3 (i=2) skal få samme plass som posisjon 2
+        if (delt.includes(i)) {
+          // Forrige posisjon var delt, så denne får samme plassering
+          plasseringer.push(plasseringer[i - 1]);
+        } else {
+          // Neste ledige plassering = forrige plassering + antall på den plasseringen
+          // Tell hvor mange som har samme plassering som forrige
+          const forrigePlass = plasseringer[i - 1];
+          let antallPåForrigePlass = 1;
+          for (let j = i - 2; j >= 0; j--) {
+            if (plasseringer[j] === forrigePlass) antallPåForrigePlass++;
+            else break;
+          }
+          plasseringer.push(forrigePlass + antallPåForrigePlass);
+        }
       }
-      currentPlass = plasseringer[i] + 1;
     }
     return plasseringer;
   };
