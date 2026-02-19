@@ -2854,6 +2854,53 @@ export default function OLTippingApp() {
                       </details>
                     </div>
                   )}
+
+                  {/* Låste øvelser - vis alles tips */}
+                  {låsteØvelser.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-slate-700">
+                      <h4 className="font-bold text-orange-400 flex items-center gap-2 mb-3">
+                        <Lock className="w-4 h-4" /> Låste øvelser - alles tips
+                      </h4>
+                      <div className="space-y-3">
+                        {låsteØvelser.map(øvelseIdx => {
+                          const ø = OL_PROGRAM[øvelseIdx];
+                          if (!ø) return null;
+                          return (
+                            <details key={øvelseIdx} className="group bg-slate-800/30 rounded-lg border border-orange-500/30">
+                              <summary className="cursor-pointer p-3 flex items-center justify-between">
+                                <div className="flex items-center gap-2">
+                                  <span className={`text-xs px-2 py-0.5 rounded ${SPORT_COLORS[ø.sport]?.bg} text-white`}>
+                                    {ø.sport.toUpperCase()}
+                                  </span>
+                                  <span className="text-white text-sm font-semibold">{ø.øvelse}</span>
+                                </div>
+                                <ChevronDown className="w-4 h-4 text-orange-400 group-open:rotate-180 transition-transform" />
+                              </summary>
+                              <div className="px-3 pb-3 space-y-1 max-h-60 overflow-y-auto">
+                                {alleTips.map(d => (
+                                  <div key={d.id} className="flex items-center gap-2 p-1.5 bg-slate-900/50 rounded text-xs">
+                                    <span className="text-white font-semibold w-28 truncate">{d.navn}</span>
+                                    <div className="flex gap-1 flex-wrap flex-1">
+                                      {d.tips[øvelseIdx]?.map((tip, i) => (
+                                        <span key={i} className={`px-1.5 py-0.5 rounded ${
+                                          i === 0 ? 'bg-yellow-600/30 text-yellow-300' : 
+                                          i === 1 ? 'bg-slate-500/30 text-slate-300' : 
+                                          i === 2 ? 'bg-orange-600/30 text-orange-300' : 
+                                          'bg-slate-700/50 text-slate-400'
+                                        }`}>
+                                          {i + 1}. {tip || '-'}
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </details>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
